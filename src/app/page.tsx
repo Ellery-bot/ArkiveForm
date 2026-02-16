@@ -1,63 +1,80 @@
+import Link from "next/link";
 import Image from "next/image";
+import StarBurstButton from "./components/StarBurstButton";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+    <div className="min-h-screen relative overflow-hidden flex items-center justify-center py-12">
+      {/* Main Content */}
+      <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        {/* Card Container */}
+        <div className="card card-padded animate-fade-in">
+          {/* Image Section */}
+          <div className="mb-6 rounded-lg overflow-hidden h-48 sm:h-56 md:h-64 flex items-center justify-center relative">
+            <Image 
+              src="/arkive-logo.png" 
+              alt="Arkive Market"
+              fill
+              className="object-contain"
+              priority
+              quality={100}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          </div>
+
+
+          {/* About Section */}
+          <section id="about" className="mb-10 animate-fade-in" style={{ animationDelay: "0.3s" }}>
+            <h2 className="text-xl sm:text-2xl font-bold text-white mb-8 text-center">About Us</h2>
+            <div className="space-y-12 text-gray-100 text-sm sm:text-base leading-loose">
+              <p className="text-center">
+                <a
+                  className="social-link text-blue-100"
+                  href="https://www.facebook.com/profile.php?id=61580470037051"
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Arkive on Facebook"
+                >
+                  @arkivemarket
+                </a>
+              </p>
+              <p>
+               Started in 2025, this independent reselling business began as a passion project and has grown into a small enterprise. Every order is personally handled with care, prioritizing honesty, clear communication, and reliability. I am committed to providing authentic products while building strong, trustworthy relationships with my customers. 
+              </p>
+            </div>
+          </section>
+
+          {/* Navigation Buttons */}
+          <section className="flex flex-wrap gap-4 justify-center mb-8 animate-fade-in" style={{ animationDelay: "0.4s" }}>
+            <StarBurstButton 
+              href="/terms"
+              className="btn-blue text-xs sm:text-sm"
+            >
+              T&C
+            </StarBurstButton>
+            <StarBurstButton 
+              href="/faqs"
+              className="btn-yellow text-xs sm:text-sm"
+            >
+              FAQS
+            </StarBurstButton>
+            <StarBurstButton 
+              href="/reviews"
+              className="btn-green text-xs sm:text-sm"
+            >
+              REVIEWS
+            </StarBurstButton>
+            <StarBurstButton 
+              href="/form"
+              className="btn-red text-xs sm:text-sm"
+            >
+              FORM
+            </StarBurstButton>
+          </section>
+
+          {/* Footer Text */}
+          {/* <p className="text-center text-xs text-blue-300 italic">
+            Made with care by Arkive
+          </p> */}
         </div>
       </main>
     </div>
