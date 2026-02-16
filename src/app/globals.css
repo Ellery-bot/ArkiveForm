@@ -30,8 +30,6 @@ body {
 
 * {
   box-sizing: border-box;
-  padding: 0;
-  margin: 0;
   font-family: var(--font-pixel), 'Press Start 2P', monospace !important;
   line-height: 1.6;
   letter-spacing: 0.05em;
@@ -183,6 +181,16 @@ select:focus-visible {
 /* Optional top padding for cards that need breathing room at the top */
 .card-padded {
   padding-top: 2.5rem;
+}
+
+.home-card {
+  padding: 0 3rem 3rem 3rem;
+}
+
+.nav-button {
+  min-width: 110px;
+  text-align: center;
+  padding: 0.85rem 1.6rem;
 }
 
 /* Button styling */

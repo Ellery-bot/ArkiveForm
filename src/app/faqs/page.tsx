@@ -1,4 +1,6 @@
-import Link from "next/link";
+"use client";
+
+import ChatBot from "../components/ChatBot";
 
 export default function FAQsPage() {
   const faqs = [
@@ -29,33 +31,8 @@ export default function FAQsPage() {
   ];
 
   return (
-    <div className="min-h-screen relative overflow-hidden flex items-center justify-center py-12">
-
-      {/* Main Content */}
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="card animate-fade-in">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-8 text-center">Frequently Asked Questions</h1>
-
-          <div className="space-y-6">
-            {faqs.map((faq, index) => (
-              <div key={index} className="border-t border-gray-300 pt-6 first:border-t-0 first:pt-0">
-                <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-3">
-                  {faq.question}
-                </h3>
-                <p className="text-gray-800 leading-loose text-sm sm:text-base">
-                  {faq.answer}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-8 flex justify-center gap-4 flex-wrap border-t border-gray-300 pt-6">
-            <Link href="/" className="btn-secondary inline-block text-sm">
-              ← Back to Home
-            </Link>
-          </div>
-        </div>
-      </main>
-    </div>
+    <>
+      <ChatBot faqs={faqs} />
+    </>
   );
 }
