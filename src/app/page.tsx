@@ -22,7 +22,7 @@ export default function Home() {
 
 
           {/* About Section */}
-          <section id="about" className="mb-10 animate-fade-in" style={{ animationDelay: "0.3s" }}>
+          <section id="about" className="mb-3 sm:mb-4 animate-fade-in" style={{ animationDelay: "0.3s" }}>
             <h2 className="text-xl sm:text-2xl font-bold text-white mb-8 text-center">About Us</h2>
             <div className="text-gray-100 text-sm sm:text-base leading-loose flex flex-col gap-8">
               <p className="text-center">
@@ -43,7 +43,7 @@ export default function Home() {
           </section>
 
           {/* Navigation Buttons */}
-          <section className="flex flex-nowrap gap-4 sm:gap-6 justify-center pt-12 overflow-x-auto animate-fade-in" style={{ animationDelay: "0.4s" }}>
+          <section className="flex flex-nowrap gap-4 sm:gap-6 justify-center pt-3 sm:pt-4 overflow-x-auto animate-fade-in" style={{ animationDelay: "0.4s" }}>
             <Link 
               href="/terms"
               className="btn-blue nav-button text-sm sm:text-base"
