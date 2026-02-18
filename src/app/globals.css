@@ -369,3 +369,32 @@ section {
   color: #0f172a !important;
 }
 
+/* ===== Gameboy Reviews Theme ===== */
+:root {
+  --gb-light: #9BBC0F;
+  --gb-mid: #8BAC0F;
+  --gb-dark: #306230;
+  --gb-darkest: #0F380F;
+  --gb-shell: #8b8b9e;
+  --gb-shell-dark: #5c5c6b;
+  --gb-screen-bg: #0F380F;
+}
+
+@keyframes gb-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+.gb-cursor-blink {
+  animation: gb-blink 1s step-end infinite;
+}
+
+@keyframes gb-pop {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.gb-review-enter {
+  animation: gb-pop 0.2s ease-out;
+}
+
