@@ -71,9 +71,6 @@ export default function ReviewsPage() {
       .catch(() => setLoadingReviews(false));
   }, []);
 
-  const averageRating = reviews.length
-    ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
-    : '0.0';
   const currentReview = reviews[currentIndex];
 
   const goNext = useCallback(() => {
@@ -144,19 +141,16 @@ export default function ReviewsPage() {
 
               {/* Title */}
               <h1
-                className="text-center text-xs sm:text-sm mb-1 sm:mb-3"
+                className="text-center text-xs sm:text-sm mb-1 sm:mb-2"
                 style={{ fontFamily: 'var(--font-pixel), "Press Start 2P", monospace', color: '#0F380F' }}
               >
                 ★ REVIEWS ★
               </h1>
 
-              {/* Average rating - power bar style */}
-              <div className="flex flex-col items-center mb-2 sm:mb-4">
-                <PixelHearts rating={Math.round(parseFloat(averageRating))} />
-                <p className="text-[10px] mt-1" style={{ color: '#0F380F' }}>
-                  {averageRating}/5 · {reviews.length} REVIEWS
-                </p>
-              </div>
+              {/* Page counter */}
+              <p className="text-center text-[8px] mb-2 sm:mb-3" style={{ color: '#0F380F' }}>
+                {reviews.length > 0 ? `${currentIndex + 1} / ${reviews.length}` : ''}
+              </p>
 
               {/* RPG dialogue box - fixed height, scroll if text overflows */}
               <div
@@ -192,11 +186,6 @@ export default function ReviewsPage() {
                   </div>
                 )}
               </div>
-
-              {/* Screen nav: 1 of 6 */}
-              <p className="text-center text-[8px]" style={{ color: '#0F380F' }}>
-                {currentIndex + 1} / {reviews.length}
-              </p>
             </div>
           </div>
 
