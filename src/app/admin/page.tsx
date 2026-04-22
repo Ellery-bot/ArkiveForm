@@ -30,6 +30,9 @@ export default function AdminPage() {
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState(false);
 
+  // Delete confirmation modal
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+
   const fetchReviews = useCallback(async () => {
     const res = await fetch('/api/admin/reviews');
     if (res.status === 401) {
@@ -100,13 +103,13 @@ export default function AdminPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this review? This cannot be undone.')) return;
     await fetch('/api/admin/reviews', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id }),
     });
     fetchReviews();
+    setConfirmId(null);
   };
 
   if (loading) {
@@ -217,7 +220,9 @@ export default function AdminPage() {
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="border-2 border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-900"
+                  max={new Date().toISOString().split('T')[0]}
+                  className="border-2 border-gray-300 rounded-lg px-3 py-3 text-sm text-gray-900 w-full appearance-none"
+                  style={{ minHeight: '44px' }}
                   required
                 />
               </div>
@@ -258,7 +263,7 @@ export default function AdminPage() {
                       <p className="text-[10px] text-gray-400 mt-1">{review.date}</p>
                     </div>
                     <button
-                      onClick={() => handleDelete(review.id)}
+                      onClick={() => setConfirmId(review.id)}
                       className="text-red-500 text-sm shrink-0 hover:text-red-700 leading-none"
                       aria-label="Delete review"
                     >
@@ -272,6 +277,31 @@ export default function AdminPage() {
 
         </div>
       </div>
+
+      {/* Custom delete confirmation modal */}
+      {confirmId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-6" style={{ background: 'rgba(0,0,0,0.6)' }}>
+          <div className="card card-padded w-full max-w-xs animate-fade-in text-center">
+            <p className="text-sm font-bold text-gray-900 mb-2">Delete Review?</p>
+            <p className="text-xs text-gray-600 mb-6">This cannot be undone.</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmId(null)}
+                className="btn-secondary text-xs py-2 flex-1"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDelete(confirmId)}
+                className="btn-primary text-xs py-2 flex-1"
+                style={{ background: '#c0392b' }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
