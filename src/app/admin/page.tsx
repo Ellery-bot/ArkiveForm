@@ -33,6 +33,9 @@ export default function AdminPage() {
   // Delete confirmation modal
   const [confirmId, setConfirmId] = useState<string | null>(null);
 
+  // Reviews list toggle
+  const [showReviews, setShowReviews] = useState(false);
+
   const fetchReviews = useCallback(async () => {
     const res = await fetch('/api/admin/reviews');
     if (res.status === 401) {
@@ -242,36 +245,42 @@ export default function AdminPage() {
 
           {/* Existing Reviews */}
           <section>
-            <h2 className="text-sm font-bold text-gray-900 mb-4">
-              Reviews ({reviews.length})
-            </h2>
-            {reviews.length === 0 ? (
-              <p className="text-xs text-gray-500">No reviews yet.</p>
-            ) : (
-              <div className="flex flex-col gap-3">
-                {reviews.map((review) => (
-                  <div
-                    key={review.id}
-                    className="border-2 border-gray-200 rounded-lg p-3 flex justify-between items-start gap-3"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-gray-900">{review.name}</p>
-                      <p className="text-[10px] text-yellow-500 mb-1">
-                        {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
-                      </p>
-                      <p className="text-[10px] text-gray-700 line-clamp-2">{review.text}</p>
-                      <p className="text-[10px] text-gray-400 mt-1">{review.date}</p>
-                    </div>
-                    <button
-                      onClick={() => setConfirmId(review.id)}
-                      className="text-red-500 text-sm shrink-0 hover:text-red-700 leading-none"
-                      aria-label="Delete review"
+            <button
+              onClick={() => setShowReviews((v) => !v)}
+              className="w-full flex justify-between items-center text-sm font-bold text-gray-900 mb-4 hover:opacity-70 transition-opacity"
+            >
+              <span>Reviews ({reviews.length})</span>
+              <span className="text-xs">{showReviews ? '▲ Hide' : '▼ Show'}</span>
+            </button>
+            {showReviews && (
+              reviews.length === 0 ? (
+                <p className="text-xs text-gray-500">No reviews yet.</p>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  {reviews.map((review) => (
+                    <div
+                      key={review.id}
+                      className="border-2 border-gray-200 rounded-lg p-3 flex justify-between items-start gap-3"
                     >
-                      ✕
-                    </button>
-                  </div>
-                ))}
-              </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-gray-900">{review.name}</p>
+                        <p className="text-[10px] text-yellow-500 mb-1">
+                          {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
+                        </p>
+                        <p className="text-[10px] text-gray-700 line-clamp-2">{review.text}</p>
+                        <p className="text-[10px] text-gray-400 mt-1">{review.date}</p>
+                      </div>
+                      <button
+                        onClick={() => setConfirmId(review.id)}
+                        className="text-red-500 text-sm shrink-0 hover:text-red-700 leading-none"
+                        aria-label="Delete review"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )
             )}
           </section>
 
