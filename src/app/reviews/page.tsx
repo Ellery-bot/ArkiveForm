@@ -1,60 +1,15 @@
 'use client';
 
 import Link from "next/link";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 
 interface Review {
-  id: number;
+  id: string;
   name: string;
   rating: number;
   text: string;
   date: string;
 }
-
-const reviews: Review[] = [
-  {
-    id: 1,
-    name: "Maria Santos",
-    rating: 5,
-    text: "Amazing service! The team was very professional and helpful. Highly recommended for anyone looking for event tickets.",
-    date: "January 2026"
-  },
-  {
-    id: 2,
-    name: "John Reyes",
-    rating: 5,
-    text: "Excellent experience from start to finish. The booking process was smooth and the customer support was outstanding.",
-    date: "January 2026"
-  },
-  {
-    id: 3,
-    name: "Angela Cruz",
-    rating: 4,
-    text: "Great service overall. Very responsive team and competitive pricing. Would definitely use again for future events.",
-    date: "December 2025"
-  },
-  {
-    id: 4,
-    name: "Miguel Torres",
-    rating: 5,
-    text: "Five stars! Got my tickets quickly and the whole process was hassle-free. Best ticketing service I've used.",
-    date: "December 2025"
-  },
-  {
-    id: 5,
-    name: "Isabella Fernandez",
-    rating: 5,
-    text: "Very professional and reliable. They answered all my questions promptly and made the booking experience enjoyable.",
-    date: "November 2025"
-  },
-  {
-    id: 6,
-    name: "Carlos Mendez",
-    rating: 4,
-    text: "Good service and fair prices. The only thing could be improved is the payment method options, but overall satisfied.",
-    date: "November 2025"
-  }
-];
 
 // Pixel hearts / power bar (health meter style)
 function PixelHearts({ rating }: { rating: number }) {
@@ -100,10 +55,25 @@ function useReviewChime() {
 }
 
 export default function ReviewsPage() {
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loadingReviews, setLoadingReviews] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [animKey, setAnimKey] = useState(0);
   const playChime = useReviewChime();
-  const averageRating = (reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(1);
+
+  useEffect(() => {
+    fetch('/api/reviews')
+      .then((r) => r.json())
+      .then((data: Review[]) => {
+        setReviews(data);
+        setLoadingReviews(false);
+      })
+      .catch(() => setLoadingReviews(false));
+  }, []);
+
+  const averageRating = reviews.length
+    ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
+    : '0.0';
   const currentReview = reviews[currentIndex];
 
   const goNext = useCallback(() => {
@@ -197,23 +167,30 @@ export default function ReviewsPage() {
                   boxShadow: 'inset 0 0 0 2px #8BAC0F',
                 }}
               >
-                <div key={animKey} className="gb-review-enter">
-                  <div className="flex justify-between items-start gap-2 mb-2">
-                    <h3
-                      className="text-[10px] font-bold"
-                      style={{ color: '#0F380F' }}
-                    >
-                      {currentReview.name}
-                    </h3>
-                    <PixelHearts rating={currentReview.rating} />
+                {loadingReviews ? (
+                  <p className="text-[9px] text-center mt-4" style={{ color: '#0F380F' }}>
+                    LOADING...
+                  </p>
+                ) : reviews.length === 0 ? (
+                  <p className="text-[9px] text-center mt-4" style={{ color: '#0F380F' }}>
+                    NO REVIEWS YET.
+                  </p>
+                ) : (
+                  <div key={animKey} className="gb-review-enter">
+                    <div className="flex justify-between items-start gap-2 mb-2">
+                      <h3 className="text-[10px] font-bold" style={{ color: '#0F380F' }}>
+                        {currentReview.name}
+                      </h3>
+                      <PixelHearts rating={currentReview.rating} />
+                    </div>
+                    <p className="text-[9px] leading-relaxed mb-1" style={{ color: '#0F380F' }}>
+                      {currentReview.text}
+                    </p>
+                    <p className="text-[8px] opacity-80" style={{ color: '#0F380F' }}>
+                      {currentReview.date}
+                    </p>
                   </div>
-                  <p className="text-[9px] leading-relaxed mb-1" style={{ color: '#0F380F' }}>
-                    {currentReview.text}
-                  </p>
-                  <p className="text-[8px] opacity-80" style={{ color: '#0F380F' }}>
-                    {currentReview.date}
-                  </p>
-                </div>
+                )}
               </div>
 
               {/* Screen nav: 1 of 6 */}
@@ -298,20 +275,22 @@ export default function ReviewsPage() {
           </div>
 
           {/* Dot indicators (cartridge slots vibe) */}
-          <div className="flex justify-center gap-1.5 mt-4">
-            {reviews.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => goTo(index)}
-                className="w-2.5 h-2.5 rounded-sm transition-all"
-                style={{
-                  backgroundColor: index === currentIndex ? '#9BBC0F' : '#306230',
-                  border: '1px solid #0F380F',
-                }}
-                aria-label={`Go to review ${index + 1}`}
-              />
-            ))}
-          </div>
+          {reviews.length > 0 && (
+            <div className="flex justify-center gap-1.5 mt-4">
+              {reviews.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => goTo(index)}
+                  className="w-2.5 h-2.5 rounded-sm transition-all"
+                  style={{
+                    backgroundColor: index === currentIndex ? '#9BBC0F' : '#306230',
+                    border: '1px solid #0F380F',
+                  }}
+                  aria-label={`Go to review ${index + 1}`}
+                />
+              ))}
+            </div>
+          )}
 
           {/* INSERT CARTRIDGE CTA - for leaving a review */}
           <div className="mt-6 text-center">
