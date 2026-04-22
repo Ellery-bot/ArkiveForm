@@ -65,7 +65,7 @@ export default function ReviewsPage() {
     fetch('/api/reviews')
       .then((r) => r.json())
       .then((data: Review[]) => {
-        setReviews(data);
+        setReviews(Array.isArray(data) ? data : []);
         setLoadingReviews(false);
       })
       .catch(() => setLoadingReviews(false));
@@ -80,13 +80,13 @@ export default function ReviewsPage() {
     setCurrentIndex((prev) => (prev + 1) % reviews.length);
     setAnimKey((k) => k + 1);
     playChime();
-  }, [playChime]);
+  }, [playChime, reviews.length]);
 
   const goPrev = useCallback(() => {
     setCurrentIndex((prev) => (prev - 1 + reviews.length) % reviews.length);
     setAnimKey((k) => k + 1);
     playChime();
-  }, [playChime]);
+  }, [playChime, reviews.length]);
 
   const goTo = useCallback((index: number) => {
     setCurrentIndex(index);
@@ -207,7 +207,8 @@ export default function ReviewsPage() {
               <div className="flex gap-1">
                 <button
                   onClick={goPrev}
-                  className="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-l-md"
+                  disabled={reviews.length <= 1}
+                  className="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-l-md disabled:opacity-40 disabled:cursor-default"
                   style={{
                     background: 'linear-gradient(90deg, #5c5c6b 0%, #3d3d47 100%)',
                     border: '2px solid #2d2d35',
@@ -229,7 +230,8 @@ export default function ReviewsPage() {
                 />
                 <button
                   onClick={goNext}
-                  className="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-r-md"
+                  disabled={reviews.length <= 1}
+                  className="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-r-md disabled:opacity-40 disabled:cursor-default"
                   style={{
                     background: 'linear-gradient(270deg, #5c5c6b 0%, #3d3d47 100%)',
                     border: '2px solid #2d2d35',
@@ -247,7 +249,8 @@ export default function ReviewsPage() {
             <div className="flex items-center gap-4">
               <button
                 onClick={goPrev}
-                className="w-10 h-10 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-xs font-bold"
+                disabled={reviews.length <= 1}
+                className="w-10 h-10 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-xs font-bold disabled:opacity-40 disabled:cursor-default"
                 style={{
                   background: 'linear-gradient(135deg, #6b6b7a 0%, #4a4a56 100%)',
                   border: '3px solid #3d3d47',
@@ -260,7 +263,8 @@ export default function ReviewsPage() {
               </button>
               <button
                 onClick={goNext}
-                className="w-10 h-10 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-xs font-bold"
+                disabled={reviews.length <= 1}
+                className="w-10 h-10 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-xs font-bold disabled:opacity-40 disabled:cursor-default"
                 style={{
                   background: 'linear-gradient(135deg, #7a7a8a 0%, #5c5c6b 100%)',
                   border: '3px solid #4a4a56',

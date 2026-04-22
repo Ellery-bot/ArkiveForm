@@ -24,7 +24,7 @@ export default function AdminPage() {
   const [name, setName] = useState('');
   const [rating, setRating] = useState(5);
   const [text, setText] = useState('');
-  const [date, setDate] = useState('');
+  const [date, setDate] = useState(''); // stored as YYYY-MM-DD from <input type="date">
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState(false);
@@ -37,7 +37,7 @@ export default function AdminPage() {
       return;
     }
     const data = await res.json();
-    setReviews(data);
+    setReviews(Array.isArray(data) ? data : []);
     setIsAuthed(true);
     setLoading(false);
   }, []);
@@ -74,10 +74,15 @@ export default function AdminPage() {
     setFormError('');
     setFormSuccess(false);
     setSubmitting(true);
+    // Format YYYY-MM-DD → "January 15, 2026"
+    const [year, month, day] = date.split('-');
+    const formattedDate = new Date(Number(year), Number(month) - 1, Number(day))
+      .toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
     const res = await fetch('/api/admin/reviews', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, rating, text, date }),
+      body: JSON.stringify({ name, rating, text, date: formattedDate }),
     });
     setSubmitting(false);
     if (res.ok) {
@@ -135,11 +140,6 @@ export default function AdminPage() {
               Login
             </button>
           </form>
-          <div className="mt-4 text-center">
-            <Link href="/" className="btn-secondary text-xs">
-              ← Back to Home
-            </Link>
-          </div>
         </div>
       </div>
     );
@@ -191,14 +191,16 @@ export default function AdminPage() {
                 className="border-2 border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-900 min-h-[80px] resize-y"
                 required
               />
-              <input
-                type="text"
-                placeholder="Date (e.g. January 2026)"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="border-2 border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-900"
-                required
-              />
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-gray-700">Date of review:</label>
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="border-2 border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-900"
+                  required
+                />
+              </div>
               {formError && <p className="text-red-600 text-xs">{formError}</p>}
               {formSuccess && (
                 <p className="text-green-600 text-xs">Review added successfully!</p>
@@ -247,12 +249,6 @@ export default function AdminPage() {
               </div>
             )}
           </section>
-
-          <div className="mt-6">
-            <Link href="/" className="btn-secondary text-xs">
-              ← Back to Home
-            </Link>
-          </div>
 
         </div>
       </div>
