@@ -5,12 +5,12 @@ import crypto from 'crypto';
  */
 export function verifyPassword(input: string): boolean {
   const expected = process.env.ADMIN_PASSWORD;
-  if (!expected) return false;
-  try {
-    return crypto.timingSafeEqual(Buffer.from(input), Buffer.from(expected));
-  } catch {
-    return false;
-  }
+  const secret = process.env.ADMIN_SECRET;
+  if (!expected || !secret) return false;
+  // Hash both sides so they are always the same length — timingSafeEqual never throws
+  const inputHash = crypto.createHmac('sha256', secret).update(input.trim()).digest();
+  const expectedHash = crypto.createHmac('sha256', secret).update(expected.trim()).digest();
+  return crypto.timingSafeEqual(inputHash, expectedHash);
 }
 
 /**
