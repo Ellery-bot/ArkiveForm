@@ -398,3 +398,28 @@ section {
   animation: gb-pop 0.2s ease-out;
 }
 
+/* Hide scrollbar utility */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ===== Mobile Responsive Adjustments ===== */
+@media (max-width: 640px) {
+  .card {
+    padding: 0 1.25rem 1.5rem 1.25rem;
+  }
+
+  .card-padded {
+    padding-top: 1.5rem;
+  }
+
+  .home-card {
+    padding: 0 1.25rem 1.5rem 1.25rem;
+  }
+
+  .nav-button {
+    min-width: 72px;
+    padding: 0.65rem 0.85rem;
+  }
+}
+

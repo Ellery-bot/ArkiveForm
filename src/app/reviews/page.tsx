@@ -101,31 +101,35 @@ function useReviewChime() {
 
 export default function ReviewsPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [animKey, setAnimKey] = useState(0);
   const playChime = useReviewChime();
   const averageRating = (reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(1);
   const currentReview = reviews[currentIndex];
 
   const goNext = useCallback(() => {
     setCurrentIndex((prev) => (prev + 1) % reviews.length);
+    setAnimKey((k) => k + 1);
     playChime();
   }, [playChime]);
 
   const goPrev = useCallback(() => {
     setCurrentIndex((prev) => (prev - 1 + reviews.length) % reviews.length);
+    setAnimKey((k) => k + 1);
     playChime();
   }, [playChime]);
 
   const goTo = useCallback((index: number) => {
     setCurrentIndex(index);
+    setAnimKey((k) => k + 1);
     playChime();
   }, [playChime]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-8 px-4">
-      <div className="w-full max-w-xl mx-auto">
+    <div className="min-h-screen flex items-center justify-center py-8 px-6 sm:px-6">
+      <div className="w-full max-w-xs sm:max-w-md lg:max-w-xl mx-auto">
         {/* Gameboy shell - fixed dimensions for stable layout */}
         <div
-          className="rounded-[2rem] p-6 sm:p-8 shadow-2xl w-full"
+          className="rounded-[2rem] p-4 sm:p-6 md:p-8 shadow-2xl w-full"
           style={{
             background: 'linear-gradient(180deg, #8b8b9e 0%, #5c5c6b 40%, #4a4a56 100%)',
             border: '4px solid #3d3d47',
@@ -152,7 +156,7 @@ export default function ReviewsPage() {
           >
             {/* LCD screen area with greenish tint - fixed height for stable layout */}
             <div
-              className="rounded-md p-4 h-[340px] relative overflow-hidden flex flex-col"
+              className="rounded-md p-2 sm:p-4 h-[260px] sm:h-[340px] relative overflow-hidden flex flex-col"
               style={{
                 background: 'linear-gradient(180deg, #9BBC0F 0%, #8BAC0F 20%, #306230 60%, #0F380F 100%)',
                 boxShadow: 'inset 0 0 30px rgba(15, 56, 15, 0.9)',
@@ -170,14 +174,14 @@ export default function ReviewsPage() {
 
               {/* Title */}
               <h1
-                className="text-center text-xs sm:text-sm mb-3"
+                className="text-center text-xs sm:text-sm mb-1 sm:mb-3"
                 style={{ fontFamily: 'var(--font-pixel), "Press Start 2P", monospace', color: '#0F380F' }}
               >
                 ★ REVIEWS ★
               </h1>
 
               {/* Average rating - power bar style */}
-              <div className="flex flex-col items-center mb-4">
+              <div className="flex flex-col items-center mb-2 sm:mb-4">
                 <PixelHearts rating={Math.round(parseFloat(averageRating))} />
                 <p className="text-[10px] mt-1" style={{ color: '#0F380F' }}>
                   {averageRating}/5 · {reviews.length} REVIEWS
@@ -186,35 +190,30 @@ export default function ReviewsPage() {
 
               {/* RPG dialogue box - fixed height, scroll if text overflows */}
               <div
-                className="gb-review-enter rounded border-4 p-4 mb-4 flex-1 min-h-0 overflow-y-auto"
+                className="rounded border-4 p-2 sm:p-4 mb-1 sm:mb-4 flex-1 min-h-0 overflow-y-auto"
                 style={{
                   borderColor: '#0F380F',
                   backgroundColor: 'rgba(155, 188, 15, 0.4)',
                   boxShadow: 'inset 0 0 0 2px #8BAC0F',
                 }}
               >
-                <div className="flex justify-between items-start gap-2 mb-2">
-                  <h3
-                    className="text-[10px] font-bold"
-                    style={{ color: '#0F380F' }}
-                  >
-                    {currentReview.name}
-                  </h3>
-                  <PixelHearts rating={currentReview.rating} />
+                <div key={animKey} className="gb-review-enter">
+                  <div className="flex justify-between items-start gap-2 mb-2">
+                    <h3
+                      className="text-[10px] font-bold"
+                      style={{ color: '#0F380F' }}
+                    >
+                      {currentReview.name}
+                    </h3>
+                    <PixelHearts rating={currentReview.rating} />
+                  </div>
+                  <p className="text-[9px] leading-relaxed mb-1" style={{ color: '#0F380F' }}>
+                    {currentReview.text}
+                  </p>
+                  <p className="text-[8px] opacity-80" style={{ color: '#0F380F' }}>
+                    {currentReview.date}
+                  </p>
                 </div>
-                <p className="text-[9px] leading-relaxed mb-1" style={{ color: '#0F380F' }}>
-                  {currentReview.text}
-                </p>
-                <p className="text-[8px] opacity-80" style={{ color: '#0F380F' }}>
-                  {currentReview.date}
-                </p>
-                <span
-                  className="gb-cursor-blink inline-block ml-1 text-[10px]"
-                  style={{ color: '#0F380F' }}
-                  aria-hidden
-                >
-                  █
-                </span>
               </div>
 
               {/* Screen nav: 1 of 6 */}
@@ -231,7 +230,7 @@ export default function ReviewsPage() {
               <div className="flex gap-1">
                 <button
                   onClick={goPrev}
-                  className="w-14 h-14 flex items-center justify-center rounded-l-md"
+                  className="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-l-md"
                   style={{
                     background: 'linear-gradient(90deg, #5c5c6b 0%, #3d3d47 100%)',
                     border: '2px solid #2d2d35',
@@ -243,7 +242,7 @@ export default function ReviewsPage() {
                   <span className="text-lg leading-none">◀</span>
                 </button>
                 <div
-                  className="w-14 h-14 flex items-center justify-center"
+                  className="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center"
                   style={{
                     background: '#3d3d47',
                     border: '2px solid #2d2d35',
@@ -253,7 +252,7 @@ export default function ReviewsPage() {
                 />
                 <button
                   onClick={goNext}
-                  className="w-14 h-14 flex items-center justify-center rounded-r-md"
+                  className="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-r-md"
                   style={{
                     background: 'linear-gradient(270deg, #5c5c6b 0%, #3d3d47 100%)',
                     border: '2px solid #2d2d35',
@@ -271,7 +270,7 @@ export default function ReviewsPage() {
             <div className="flex items-center gap-4">
               <button
                 onClick={goPrev}
-                className="w-14 h-14 rounded-full flex items-center justify-center text-xs font-bold"
+                className="w-10 h-10 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-xs font-bold"
                 style={{
                   background: 'linear-gradient(135deg, #6b6b7a 0%, #4a4a56 100%)',
                   border: '3px solid #3d3d47',
@@ -284,7 +283,7 @@ export default function ReviewsPage() {
               </button>
               <button
                 onClick={goNext}
-                className="w-14 h-14 rounded-full flex items-center justify-center text-xs font-bold"
+                className="w-10 h-10 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-xs font-bold"
                 style={{
                   background: 'linear-gradient(135deg, #7a7a8a 0%, #5c5c6b 100%)',
                   border: '3px solid #4a4a56',

@@ -51,7 +51,7 @@ export default function ChatBot({ faqs }: ChatBotProps) {
   return (
     <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
       {/* Main container for chat and character */}
-      <div className="flex items-center justify-center gap-4 md:gap-8 max-w-6xl w-full">
+      <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 max-w-6xl w-full">
         {/* Chat Bubble - Left Side */}
         <AnimatePresence>
           {isChatVisible && (
@@ -62,7 +62,7 @@ export default function ChatBot({ faqs }: ChatBotProps) {
               exit="exit"
               className="flex-1 min-w-0"
             >
-              <div className="bg-white rounded-3xl shadow-2xl p-10 relative border-4 border-black">
+              <div className="bg-white rounded-3xl shadow-2xl p-4 sm:p-8 md:p-10 relative border-4 border-black">
                 {/* Chat bubble tail pointing to character - thicker and larger */}
                 <div 
                   className="hidden md:block absolute top-1/2 -right-8 transform -translate-y-1/2"
@@ -88,17 +88,20 @@ export default function ChatBot({ faqs }: ChatBotProps) {
                 ></div>
 
                 {/* Title + Back link */}
-                <div className="mb-6 flex items-start justify-between gap-4">
-                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                <div className="mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4">
+                  <Link href="/" className="btn-secondary text-sm shrink-0 sm:hidden">
+                    ← Back to Home
+                  </Link>
+                  <h2 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-900">
                     Frequently Asked Questions
                   </h2>
-                  <Link href="/" className="btn-secondary text-sm shrink-0">
+                  <Link href="/" className="btn-secondary text-sm shrink-0 hidden sm:inline-block">
                     ← Back to Home
                   </Link>
                 </div>
 
                 {/* Scrollable FAQ Content */}
-                <div className="h-72 md:h-96 overflow-y-auto px-2 pr-4 custom-scrollbar">
+                <div className="h-56 sm:h-72 md:h-96 overflow-y-auto px-2 pr-4 custom-scrollbar">
                   <div className="space-y-6">
                     {faqs.map((faq, index) => (
                       <div key={index} className="pb-6 border-b-2 border-gray-200 last:border-b-0">
@@ -128,14 +131,14 @@ export default function ChatBot({ faqs }: ChatBotProps) {
         >
           {/* Avatar Circle */}
           <motion.div
-            className="w-64 h-64 md:w-80 md:h-80 flex items-center justify-center relative z-20"
+            className="w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 flex items-center justify-center relative z-20"
             whileHover={{ scale: 1.05 }}
           >
             {/* Snorlax Image */}
             <img
               src="/snorlax.png"
               alt="Snorlax"
-              className="w-56 h-56 md:w-72 md:h-72 object-contain cursor-pointer select-none"
+              className="w-28 h-28 sm:w-44 sm:h-44 md:w-56 md:h-56 object-contain cursor-pointer select-none"
               onClick={() => setIsChatVisible((prev) => !prev)}
             />
           </motion.div>

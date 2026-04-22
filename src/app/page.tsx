@@ -3,70 +3,75 @@ import Image from "next/image";
 
 export default function Home() {
   return (
-    <div className="min-h-screen relative overflow-hidden flex items-center justify-center py-12">
+    <div className="min-h-screen relative overflow-hidden flex items-center justify-center py-6">
       {/* Main Content */}
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <main className="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Card Container */}
-        <div className="card card-padded home-card animate-fade-in">
-          {/* Image Section */}
-          <div className="mt-4 mb-6 rounded-lg overflow-hidden h-48 sm:h-56 md:h-64 flex items-center justify-center relative">
-            <Image 
-              src="/arkive-logo.png" 
-              alt="Arkive Market"
-              fill
-              className="object-contain"
-              priority
-              quality={100}
-            />
+        <div className="card card-padded home-card animate-fade-in flex flex-col max-h-[70vh]">
+
+          {/* Scrollable content area on mobile */}
+          <div className="overflow-y-auto flex-1 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+
+            {/* Image Section */}
+            <div className="mt-2 mb-3 rounded-lg overflow-hidden h-40 flex items-center justify-center relative">
+              <Image 
+                src="/arkive-logo.png" 
+                alt="Arkive Market"
+                fill
+                className="object-contain"
+                priority
+                quality={100}
+              />
+            </div>
+
+            {/* About Section */}
+            <section id="about" className="mb-2 animate-fade-in" style={{ animationDelay: "0.3s" }}>
+              <h2 className="text-base font-bold text-white mb-3 text-center">About Us</h2>
+              <div className="text-gray-100 text-xs leading-snug flex flex-col gap-3">
+                <p className="text-center">
+                  <a
+                    className="social-link text-blue-100"
+                    href="https://www.facebook.com/profile.php?id=61580470037051"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Arkive on Facebook"
+                  >
+                    @arkivemarket
+                  </a>
+                </p>
+                <p className="text-left" lang="en">
+                 Started in 2025, this independent reselling business began as a passion project and has grown into a small enterprise. Every order is personally handled with care, prioritizing honesty, clear communication, and reliability. I am committed to providing authentic products while building strong, trustworthy relationships with my customers. 
+                </p>
+              </div>
+            </section>
+
           </div>
 
-
-          {/* About Section */}
-          <section id="about" className="mb-3 sm:mb-4 animate-fade-in" style={{ animationDelay: "0.3s" }}>
-            <h2 className="text-xl sm:text-2xl font-bold text-white mb-8 text-center">About Us</h2>
-            <div className="text-gray-100 text-sm sm:text-base leading-loose flex flex-col gap-8">
-              <p className="text-center">
-                <a
-                  className="social-link text-blue-100"
-                  href="https://www.facebook.com/profile.php?id=61580470037051"
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="Arkive on Facebook"
-                >
-                  @arkivemarket
-                </a>
-              </p>
-              <p className="text-left" lang="en">
-               Started in 2025, this independent reselling business began as a passion project and has grown into a small enterprise. Every order is personally handled with care, prioritizing honesty, clear communication, and reliability. I am committed to providing authentic products while building strong, trustworthy relationships with my customers. 
-              </p>
-            </div>
-          </section>
-
-          {/* Navigation Buttons */}
-          <section className="flex flex-nowrap gap-4 sm:gap-6 justify-center pt-3 sm:pt-4 overflow-x-auto animate-fade-in" style={{ animationDelay: "0.4s" }}>
+          {/* Navigation Buttons — always visible at bottom */}
+          <section className="flex flex-wrap gap-2 justify-center pt-2 animate-fade-in shrink-0" style={{ animationDelay: "0.4s" }}>
             <Link 
               href="/terms"
-              className="btn-blue nav-button text-sm sm:text-base"
+              className="btn-blue nav-button text-xs"
             >
               T&C
             </Link>
             <Link 
               href="/faqs"
-              className="btn-yellow nav-button text-sm sm:text-base"
+              className="btn-yellow nav-button text-xs"
             >
               FAQS
             </Link>
             <Link 
-              href="/reviews"
-              className="btn-green nav-button text-sm sm:text-base"
-            >
-              REVIEWS
-            </Link>
-            <Link 
               href="/form"
-              className="btn-red nav-button text-sm sm:text-base"
+              className="btn-red nav-button text-xs"
             >
               FORM
+            </Link>
+            <Link 
+              href="/reviews"
+              className="btn-green nav-button text-xs"
+            >
+              REVIEWS
             </Link>
           </section>
 
