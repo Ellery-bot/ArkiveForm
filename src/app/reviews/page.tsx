@@ -291,9 +291,9 @@ export default function ReviewsPage() {
               href="/"
               className="inline-block px-4 py-2 text-[10px] rounded border-2 transition hover:opacity-90"
               style={{
-                borderColor: '#0F380F',
-                backgroundColor: 'rgba(155, 188, 15, 0.5)',
-                color: '#0F380F',
+                borderColor: '#1a1a2e',
+                backgroundColor: '#ffffff',
+                color: '#1a1a2e',
               }}
             >
               [ Back to Home ]
