@@ -4,11 +4,11 @@ import Link from "next/link";
 
 const formLinks = [
   {
-    label: "1. Order Form",
+    label: "1. BTS Army Bomb Lightstick V4 Pre-Order Link:",
     url: "https://docs.google.com/forms/d/e/1FAIpQLSeiHsZxqkThv4arYNzEYKk0iEpDwSf97dP-DZrVYyRVNdAUfw/viewform",
   },
   {
-    label: "2. Order Records",
+    label: "2. BTS Pre-Order Masterlist: ",
     url: "https://docs.google.com/spreadsheets/d/1c1sYBo6gg09wqawHAoCzujvGaBoovWoUpYl3_EExdv4/pubhtml",
   },
 ];

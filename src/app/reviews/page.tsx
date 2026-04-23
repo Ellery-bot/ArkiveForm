@@ -202,7 +202,7 @@ export default function ReviewsPage() {
                     background: 'linear-gradient(90deg, #5c5c6b 0%, #3d3d47 100%)',
                     border: '2px solid #2d2d35',
                     boxShadow: '2px 0 0 #2d2d35',
-                    color: '#0F380F',
+                    color: '#000000',
                   }}
                   aria-label="Previous review"
                 >
@@ -225,7 +225,7 @@ export default function ReviewsPage() {
                     background: 'linear-gradient(270deg, #5c5c6b 0%, #3d3d47 100%)',
                     border: '2px solid #2d2d35',
                     boxShadow: '-2px 0 0 #2d2d35',
-                    color: '#0F380F',
+                    color: '#000000',
                   }}
                   aria-label="Next review"
                 >
@@ -244,7 +244,7 @@ export default function ReviewsPage() {
                   background: 'linear-gradient(135deg, #6b6b7a 0%, #4a4a56 100%)',
                   border: '3px solid #3d3d47',
                   boxShadow: '0 4px 0 #2d2d35, inset 0 1px 0 rgba(255,255,255,0.2)',
-                  color: '#0F380F',
+                  color: '#000000',
                 }}
                 aria-label="Previous (B)"
               >
@@ -255,10 +255,10 @@ export default function ReviewsPage() {
                 disabled={reviews.length <= 1}
                 className="w-10 h-10 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-xs font-bold disabled:opacity-40 disabled:cursor-default"
                 style={{
-                  background: 'linear-gradient(135deg, #7a7a8a 0%, #5c5c6b 100%)',
-                  border: '3px solid #4a4a56',
-                  boxShadow: '0 4px 0 #3d3d47, inset 0 1px 0 rgba(255,255,255,0.2)',
-                  color: '#0F380F',
+                  background: 'linear-gradient(135deg, #6b6b7a 0%, #4a4a56 100%)',
+                  border: '3px solid #3d3d47',
+                  boxShadow: '0 4px 0 #2d2d35, inset 0 1px 0 rgba(255,255,255,0.2)',
+                  color: '#000000',
                 }}
                 aria-label="Next (A)"
               >
@@ -276,8 +276,8 @@ export default function ReviewsPage() {
                   onClick={() => goTo(index)}
                   className="w-2.5 h-2.5 rounded-sm transition-all"
                   style={{
-                    backgroundColor: index === currentIndex ? '#1a1a2e' : '#c0c0c0',
-                    border: '1px solid #1a1a2e',
+                    backgroundColor: index === currentIndex ? '#000000' : '#c0c0c0',
+                    border: '1px solid #000000',
                   }}
                   aria-label={`Go to review ${index + 1}`}
                 />
@@ -291,9 +291,9 @@ export default function ReviewsPage() {
               href="/"
               className="inline-block px-4 py-2 text-[10px] rounded border-2 transition hover:opacity-90"
               style={{
-                borderColor: '#1a1a2e',
-                backgroundColor: '#ffffff',
-                color: '#1a1a2e',
+                borderColor: '#000000',
+                backgroundColor: '#000000',
+                color: '#ffffff',
               }}
             >
               [ Back to Home ]
