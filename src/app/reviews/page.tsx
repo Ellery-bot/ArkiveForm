@@ -20,7 +20,7 @@ function PixelHearts({ rating }: { rating: number }) {
           key={i}
           className="inline-block w-4 h-4 border-2 border-[#0F380F]"
           style={{
-            backgroundColor: i < rating ? '#9BBC0F' : '#306230',
+            backgroundColor: i < rating ? '#1a1a2e' : '#d0d0d0',
             imageRendering: 'pixelated',
           }}
           aria-hidden
@@ -125,9 +125,9 @@ export default function ReviewsPage() {
             <div
               className="rounded-md p-2 sm:p-4 h-[260px] sm:h-[340px] relative overflow-hidden flex flex-col"
               style={{
-                background: 'linear-gradient(180deg, #9BBC0F 0%, #8BAC0F 20%, #306230 60%, #0F380F 100%)',
-                boxShadow: 'inset 0 0 30px rgba(15, 56, 15, 0.9)',
-                color: '#0F380F',
+                background: '#f0f0f0',
+                boxShadow: 'inset 0 0 30px rgba(0,0,0,0.1)',
+                color: '#1a1a2e',
               }}
             >
               {/* Scanlines effect (subtle) */}
@@ -142,13 +142,13 @@ export default function ReviewsPage() {
               {/* Title */}
               <h1
                 className="text-center text-xs sm:text-sm mb-1 sm:mb-2"
-                style={{ fontFamily: 'var(--font-pixel), "Press Start 2P", monospace', color: '#0F380F' }}
+                style={{ fontFamily: 'var(--font-pixel), "Press Start 2P", monospace', color: '#1a1a2e' }}
               >
                 ★ REVIEWS ★
               </h1>
 
               {/* Page counter */}
-              <p className="text-center text-[8px] mb-2 sm:mb-3" style={{ color: '#0F380F' }}>
+              <p className="text-center text-[8px] mb-2 sm:mb-3" style={{ color: '#1a1a2e' }}>
                 {reviews.length > 0 ? `${currentIndex + 1} / ${reviews.length}` : ''}
               </p>
 
@@ -156,31 +156,31 @@ export default function ReviewsPage() {
               <div
                 className="rounded border-4 p-2 sm:p-4 mb-1 sm:mb-4 flex-1 min-h-0 overflow-y-auto"
                 style={{
-                  borderColor: '#0F380F',
-                  backgroundColor: 'rgba(155, 188, 15, 0.4)',
-                  boxShadow: 'inset 0 0 0 2px #8BAC0F',
+                  borderColor: '#1a1a2e',
+                  backgroundColor: 'rgba(255,255,255,0.7)',
+                  boxShadow: 'inset 0 0 0 2px #c0c0c0',
                 }}
               >
                 {loadingReviews ? (
-                  <p className="text-[9px] text-center mt-4" style={{ color: '#0F380F' }}>
+                  <p className="text-[9px] text-center mt-4" style={{ color: '#1a1a2e' }}>
                     LOADING...
                   </p>
                 ) : reviews.length === 0 ? (
-                  <p className="text-[9px] text-center mt-4" style={{ color: '#0F380F' }}>
+                  <p className="text-[9px] text-center mt-4" style={{ color: '#1a1a2e' }}>
                     NO REVIEWS YET.
                   </p>
                 ) : (
                   <div key={animKey} className="gb-review-enter">
                     <div className="flex justify-between items-start gap-2 mb-2">
-                      <h3 className="text-[10px] font-bold" style={{ color: '#0F380F' }}>
+                      <h3 className="text-[10px] font-bold" style={{ color: '#1a1a2e' }}>
                         {currentReview.name}
                       </h3>
                       <PixelHearts rating={currentReview.rating} />
                     </div>
-                    <p className="text-[9px] leading-relaxed mb-1" style={{ color: '#0F380F' }}>
+                    <p className="text-[9px] leading-relaxed mb-1" style={{ color: '#1a1a2e' }}>
                       {currentReview.text}
                     </p>
-                    <p className="text-[8px] opacity-80" style={{ color: '#0F380F' }}>
+                    <p className="text-[8px] opacity-80" style={{ color: '#1a1a2e' }}>
                       {currentReview.date}
                     </p>
                   </div>
@@ -276,8 +276,8 @@ export default function ReviewsPage() {
                   onClick={() => goTo(index)}
                   className="w-2.5 h-2.5 rounded-sm transition-all"
                   style={{
-                    backgroundColor: index === currentIndex ? '#9BBC0F' : '#306230',
-                    border: '1px solid #0F380F',
+                    backgroundColor: index === currentIndex ? '#1a1a2e' : '#c0c0c0',
+                    border: '1px solid #1a1a2e',
                   }}
                   aria-label={`Go to review ${index + 1}`}
                 />
