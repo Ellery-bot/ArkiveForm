@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Press_Start_2P } from "next/font/google";
 import "./globals.css";
+import ClickSound from "./components/ClickSound";
 
 const pixelFont = Press_Start_2P({
   weight: "400",
@@ -28,6 +29,7 @@ export default function RootLayout({
       <body
         className={`${pixelFont.variable} antialiased`}
       >
+        <ClickSound />
         {children}
       </body>
     </html>

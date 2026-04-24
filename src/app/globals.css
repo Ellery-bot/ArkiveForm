@@ -26,6 +26,11 @@ body {
   image-rendering: -moz-crisp-edges;
   image-rendering: crisp-edges;
   min-height: 100vh;
+  cursor: url('/cursor.png') 0 0, auto !important;
+}
+
+a, button, [role="button"], select, input[type="submit"], input[type="button"], label[for], [tabindex]:not([tabindex="-1"]), .cursor-pointer {
+  cursor: url('/pcursor.png') 0 0, pointer !important;
 }
 
 * {
@@ -51,7 +56,7 @@ a {
 }
 
 button {
-  cursor: pointer;
+  cursor: url('/pcursor.png') 0 0, pointer !important;
   border: none;
   background: none;
 }
@@ -293,7 +298,7 @@ select:focus-visible {
   padding: 0.5rem 0;
   font-weight: 500;
   transition: all 0.3s ease;
-  cursor: pointer;
+  cursor: url('/pcursor.png') 0 0, pointer !important;
   text-decoration: none;
 }
 

@@ -5,7 +5,7 @@ export async function GET() {
   const supabase = createServerSupabase();
   const { data, error } = await supabase
     .from('reviews')
-    .select('id, name, rating, text, date')
+    .select('id, name, rating, text, date, image_url')
     .order('created_at', { ascending: false });
 
   if (error) {

@@ -9,6 +9,7 @@ interface Review {
   rating: number;
   text: string;
   date: string;
+  image_url?: string | null;
 }
 
 // Pixel hearts / power bar (health meter style)
@@ -60,6 +61,7 @@ export default function ReviewsPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [animKey, setAnimKey] = useState(0);
   const playChime = useReviewChime();
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/reviews')
@@ -177,6 +179,21 @@ export default function ReviewsPage() {
                       </h3>
                       <PixelHearts rating={currentReview.rating} />
                     </div>
+                    {currentReview.image_url && (
+                      <button
+                        onClick={() => setLightboxUrl(currentReview.image_url!)}
+                        className="mb-2 px-2 py-1 text-[8px] font-bold rounded border-2 transition-opacity hover:opacity-70 active:opacity-50"
+                        style={{
+                          borderColor: '#1a1a2e',
+                          backgroundColor: '#1a1a2e',
+                          color: '#f0f0f0',
+                          fontFamily: 'var(--font-pixel), "Press Start 2P", monospace',
+                          letterSpacing: '0.05em',
+                        }}
+                      >
+                        [ View Image ]
+                      </button>
+                    )}
                     <p className="text-[9px] leading-relaxed mb-1" style={{ color: '#1a1a2e' }}>
                       {currentReview.text}
                     </p>
@@ -301,6 +318,36 @@ export default function ReviewsPage() {
           </div>
         </div>
       </div>
+
+      {/* Lightbox */}
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.85)' }}
+          onClick={() => setLightboxUrl(null)}
+        >
+          <div
+            className="relative max-w-full max-h-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={lightboxUrl}
+              alt="Review image"
+              className="max-w-[90vw] max-h-[85vh] object-contain rounded"
+              style={{ border: '4px solid #1a1a2e', imageRendering: 'auto' }}
+            />
+            <button
+              onClick={() => setLightboxUrl(null)}
+              className="absolute -top-3 -right-3 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
+              style={{ background: '#1a1a2e', color: '#f0f0f0', border: '2px solid #f0f0f0' }}
+              aria-label="Close image"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
