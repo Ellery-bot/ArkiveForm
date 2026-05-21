@@ -428,3 +428,90 @@ section {
   }
 }
 
+/* ===== SHOP PAGE MODE =====
+   Overrides the global pixel font and cursor for the ecommerce shop page */
+.shop-mode,
+.shop-mode * {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif !important;
+  image-rendering: auto !important;
+  letter-spacing: normal !important;
+  line-height: 1.5 !important;
+  cursor: auto !important;
+}
+
+.shop-mode a,
+.shop-mode button,
+.shop-mode [role="button"],
+.shop-mode input,
+.shop-mode select {
+  cursor: pointer !important;
+}
+
+.shop-mode input[type="text"],
+.shop-mode input[type="email"],
+.shop-mode input[type="search"] {
+  cursor: text !important;
+}
+
+/* Responsive product grid */
+.shop-product-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+@media (min-width: 750px) {
+  .shop-product-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 990px) {
+  .shop-product-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+/* Responsive footer grid */
+.shop-footer-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 750px) {
+  .shop-footer-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 990px) {
+  .shop-footer-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Desktop nav: hidden on mobile, flex on desktop */
+.shop-nav-desktop {
+  display: none;
+}
+
+@media (min-width: 990px) {
+  .shop-nav-desktop {
+    display: flex !important;
+    align-items: center;
+    flex: 1;
+  }
+}
+
+/* Hamburger: visible on mobile, hidden on desktop */
+.shop-hamburger {
+  display: flex !important;
+}
+
+@media (min-width: 990px) {
+  .shop-hamburger {
+    display: none !important;
+  }
+}
+

@@ -1,49 +1,53 @@
 "use client";
 
 import Link from "next/link";
+import Script from "next/script";
 
-const formLinks = [
-  {
-    label: "1. BTS Army Bomb Lightstick V4 Pre-Order Link:",
-    url: "https://docs.google.com/forms/d/e/1FAIpQLSeiHsZxqkThv4arYNzEYKk0iEpDwSf97dP-DZrVYyRVNdAUfw/viewform",
-  },
-  {
-    label: "2. BTS Pre-Order Masterlist: ",
-    url: "https://docs.google.com/spreadsheets/d/1c1sYBo6gg09wqawHAoCzujvGaBoovWoUpYl3_EExdv4/pubhtml",
-  },
-];
+const PINK = "#1520A6";
+const FONT = `system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif`;
 
 export default function FormPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center py-8 px-4">
-      <div className="card card-padded w-full max-w-xs sm:max-w-sm animate-fade-in">
+    <div className="shop-mode" style={{ background: "#fff", color: "#121212", minHeight: "100vh", fontFamily: FONT }}>
 
-        {/* Back to Home */}
-        <div className="mb-4">
-          <Link href="/" className="btn-secondary text-xs inline-block">
-            ← Back to Home
+      {/* Announcement bar */}
+      <div style={{ background: PINK, color: "#fff", textAlign: "center", padding: "10px 16px", fontSize: "14px" }}>
+        Shipping fees are all estimated. For bulk orders and international shipping, please DM us!
+      </div>
+
+      {/* Header */}
+      <header style={{ borderBottom: "1px solid #e5e5e5", background: "#fff" }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "12px 20px", display: "flex", alignItems: "center", gap: "16px" }}>
+          <Link href="/shop" style={{ fontWeight: 700, fontSize: "20px", color: "#121212", textDecoration: "none", letterSpacing: "0.02em" }}>
+            ARKIVE MARKET
+          </Link>
+          <Link href="/shop" style={{ marginLeft: "auto", fontSize: "13px", color: "#888", textDecoration: "none" }}
+            onMouseEnter={e => ((e.target as HTMLAnchorElement).style.color = PINK)}
+            onMouseLeave={e => ((e.target as HTMLAnchorElement).style.color = "#888")}>
+            ← Back to Shop
           </Link>
         </div>
+      </header>
 
-        <h1 className="text-base font-bold text-center mb-6">Form Links</h1>
-
-        <div className="flex flex-col gap-4">
-          {formLinks.map((item) => (
-            <div key={item.label} className="flex flex-col gap-1">
-              <p className="text-xs font-bold">{item.label}</p>
-              <a
-                href={item.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[10px] break-all text-blue-600 underline hover:opacity-75"
-              >
-                {item.url}
-              </a>
-            </div>
-          ))}
+      {/* Main content */}
+      <main>
+        <div style={{ maxWidth: "800px", margin: "0 auto", padding: "40px 20px" }}>
+          <h1 style={{ fontWeight: 700, fontSize: "28px", marginBottom: "28px", color: "#121212", letterSpacing: "0.02em" }}>
+            PAYMENT FORM
+          </h1>
+          <iframe
+            src="https://www.cognitoforms.com/f/L2UuXU6xtkaidqDci0gNxA/30"
+            style={{ border: 0, width: "100%" }}
+            height={1127}
+          />
+          <Script src="https://www.cognitoforms.com/f/iframe.js" strategy="afterInteractive" />
         </div>
+      </main>
 
-      </div>
+      {/* Footer */}
+      <footer style={{ borderTop: "1px solid #e5e5e5", padding: "24px 20px", textAlign: "center" }}>
+        <p style={{ fontSize: "12px", color: "#888", margin: 0 }}>© 2025 Arkive Market. All rights reserved.</p>
+      </footer>
     </div>
   );
 }

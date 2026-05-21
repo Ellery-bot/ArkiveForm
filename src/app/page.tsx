@@ -39,7 +39,7 @@ export default function Home() {
                     @arkivemarket
                   </a>
                 </p>
-                <p className="text-left" lang="en">
+                <p className="text-justify" lang="en">
                  Started in 2025, this independent reselling business began as a passion project and has grown into a small enterprise. Every order is personally handled with care, prioritizing honesty, clear communication, and reliability. I am committed to providing authentic products while building strong, trustworthy relationships with my customers. 
                 </p>
               </div>
@@ -57,15 +57,15 @@ export default function Home() {
             </Link>
             <Link 
               href="/faqs"
-              className="btn-yellow nav-button text-xs"
+              className="btn-red nav-button text-xs"
             >
               FAQS
             </Link>
             <Link 
-              href="/form"
-              className="btn-red nav-button text-xs"
+              href="/shop"
+              className="btn-yellow nav-button text-xs"
             >
-              FORM
+              SHOP
             </Link>
             <Link 
               href="/reviews"
