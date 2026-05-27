@@ -13,15 +13,25 @@ export default function Home() {
           <div className="overflow-y-auto flex-1 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
 
             {/* Image Section */}
-            <div className="mt-2 mb-3 rounded-lg overflow-hidden h-40 flex items-center justify-center relative">
-              <Image 
-                src="/arkive-logo.png" 
-                alt="Arkive Market"
-                fill
-                className="object-contain"
-                priority
-                quality={100}
-              />
+            <div className="mt-2 mb-3 rounded-lg overflow-hidden h-56 flex items-center justify-center">
+              {/* Logo text */}
+              <div className="flex-shrink-0 flex items-center justify-end h-full">
+                <div className="flex flex-col justify-center items-center text-center">
+                  <span className="typing-logo-text">Arkive</span>
+                  <span className="typing-subtitle">your trusted online shop</span>
+                </div>
+              </div>
+              {/* Cat + cart image — fixed width */}
+              <div className="relative h-full flex-shrink-0" style={{ width: '240px' }}>
+                <Image
+                  src="/arkive-cat.png"
+                  alt="Arkive Market"
+                  fill
+                  className="object-contain object-left"
+                  priority
+                  quality={100}
+                />
+              </div>
             </div>
 
             {/* About Section */}
@@ -36,7 +46,7 @@ export default function Home() {
                     rel="noreferrer"
                     aria-label="Arkive on Facebook"
                   >
-                    @arkivemarket
+                    @clickhere
                   </a>
                 </p>
                 <p className="text-justify" lang="en">

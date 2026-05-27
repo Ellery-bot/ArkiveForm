@@ -6,29 +6,9 @@ import { useState, useCallback, useEffect } from "react";
 interface Review {
   id: string;
   name: string;
-  rating: number;
   text: string;
   date: string;
   image_url?: string | null;
-}
-
-// Pixel hearts / power bar (health meter style)
-function PixelHearts({ rating }: { rating: number }) {
-  return (
-    <div className="flex gap-1" role="img" aria-label={`${rating} out of 5`}>
-      {[...Array(5)].map((_, i) => (
-        <span
-          key={i}
-          className="inline-block w-4 h-4 border-2 border-[#0F380F]"
-          style={{
-            backgroundColor: i < rating ? '#1a1a2e' : '#d0d0d0',
-            imageRendering: 'pixelated',
-          }}
-          aria-hidden
-        />
-      ))}
-    </div>
-  );
 }
 
 // Play subtle 8-bit chime when review changes
@@ -177,7 +157,6 @@ export default function ReviewsPage() {
                       <h3 className="text-[10px] font-bold" style={{ color: '#1a1a2e' }}>
                         {currentReview.name}
                       </h3>
-                      <PixelHearts rating={currentReview.rating} />
                     </div>
                     {currentReview.image_url && (
                       <button

@@ -106,7 +106,7 @@ export default function TermsPage() {
             <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-4">
               {section.number}. {section.title}
             </h2>
-            <p className="text-sm sm:text-base text-gray-800 leading-relaxed">
+            <p className="text-sm sm:text-base text-gray-800 leading-relaxed text-justify">
               {section.content}
             </p>
           </div>

@@ -28,18 +28,12 @@ export async function POST(req: NextRequest) {
 
   const formData = await req.formData();
   const name = formData.get('name') as string | null;
-  const ratingRaw = formData.get('rating') as string | null;
   const text = formData.get('text') as string | null;
   const date = formData.get('date') as string | null;
   const imageFile = formData.get('image') as File | null;
 
-  const rating = ratingRaw ? Number(ratingRaw) : NaN;
-
-  if (!name || !ratingRaw || !text || !date) {
+  if (!name || !text || !date) {
     return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
-  }
-  if (isNaN(rating) || rating < 1 || rating > 5) {
-    return NextResponse.json({ error: 'Rating must be between 1 and 5' }, { status: 400 });
   }
 
   const supabase = createServerSupabase();
@@ -65,7 +59,7 @@ export async function POST(req: NextRequest) {
 
   const { data, error } = await supabase
     .from('reviews')
-    .insert([{ name: String(name), rating, text: String(text), date: String(date), image_url }])
+    .insert([{ name: String(name), text: String(text), date: String(date), image_url }])
     .select()
     .single();
 
@@ -98,23 +92,17 @@ export async function PATCH(req: NextRequest) {
   const formData = await req.formData();
   const id = formData.get('id') as string | null;
   const name = formData.get('name') as string | null;
-  const ratingRaw = formData.get('rating') as string | null;
   const text = formData.get('text') as string | null;
   const date = formData.get('date') as string | null;
   const imageFile = formData.get('image') as File | null;
   const removeImage = formData.get('remove_image') === 'true';
 
-  if (!id || !name || !ratingRaw || !text || !date) {
+  if (!id || !name || !text || !date) {
     return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
-  }
-  const rating = Number(ratingRaw);
-  if (isNaN(rating) || rating < 1 || rating > 5) {
-    return NextResponse.json({ error: 'Rating must be between 1 and 5' }, { status: 400 });
   }
 
   const supabase = createServerSupabase();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const updates: Record<string, any> = { name, rating, text, date };
+  const updates: Record<string, unknown> = { name, text, date };
 
   if (imageFile && imageFile.size > 0) {
     const bytes = await imageFile.arrayBuffer();

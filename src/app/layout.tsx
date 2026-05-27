@@ -1,11 +1,25 @@
 import type { Metadata, Viewport } from "next";
-import { Press_Start_2P } from "next/font/google";
+import { Press_Start_2P, Cormorant_Garamond, DM_Sans } from "next/font/google";
 import "./globals.css";
 import ClickSound from "./components/ClickSound";
+import { CartProvider } from "@/lib/cart-context";
 
 const pixelFont = Press_Start_2P({
   weight: "400",
   variable: "--font-pixel",
+  subsets: ["latin"],
+});
+
+const cormorantGaramond = Cormorant_Garamond({
+  weight: ["400", "600"],
+  style: ["normal", "italic"],
+  variable: "--font-cormorant",
+  subsets: ["latin"],
+});
+
+const dmSans = DM_Sans({
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-dm-sans",
   subsets: ["latin"],
 });
 
@@ -27,10 +41,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${pixelFont.variable} antialiased`}
+        suppressHydrationWarning
+        className={`${pixelFont.variable} ${cormorantGaramond.variable} ${dmSans.variable} antialiased`}
       >
-        <ClickSound />
-        {children}
+        <CartProvider>
+          <ClickSound />
+          {children}
+        </CartProvider>
       </body>
     </html>
   );

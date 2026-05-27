@@ -108,7 +108,7 @@ export default function ChatBot({ faqs }: ChatBotProps) {
                         <h3 className="text-base sm:text-lg font-bold text-black mb-3">
                           {faq.question}
                         </h3>
-                        <ul className="list-disc list-inside space-y-1 text-gray-800 leading-relaxed text-sm sm:text-base">
+                        <ul className="list-disc list-inside space-y-1 text-gray-800 leading-relaxed text-sm sm:text-base text-justify">
                           {faq.answer.split("\n").map((item, idx) => (
                             <li key={idx}>{item}</li>
                           ))}

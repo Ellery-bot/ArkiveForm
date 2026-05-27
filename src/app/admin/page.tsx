@@ -2,11 +2,11 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useCallback } from 'react';
+import { AdminProductsTab } from '@/app/components/AdminProductsTab';
 
 interface Review {
   id: string;
   name: string;
-  rating: number;
   text: string;
   date: string;
   image_url?: string | null;
@@ -24,7 +24,6 @@ export default function AdminPage() {
 
   // Add review form
   const [name, setName] = useState('');
-  const [rating, setRating] = useState(5);
   const [text, setText] = useState('');
   const [date, setDate] = useState(''); // stored as YYYY-MM-DD from <input type="date">
   const [submitting, setSubmitting] = useState(false);
@@ -40,11 +39,18 @@ export default function AdminPage() {
 
   // Reviews list toggle
   const [showReviews, setShowReviews] = useState(false);
+  const [activeTab, setActiveTab] = useState<'products' | 'reviews'>('products');
 
   // Edit modal
   const [editReview, setEditReview] = useState<Review | null>(null);
   const [editName, setEditName] = useState('');
-  const [editRating, setEditRating] = useState(5);
+
+  // NOTIFY SUBSCRIBERS FEATURE — commented out for now
+  // const [notifySubject, setNotifySubject] = useState('');
+  // const [notifyMessage, setNotifyMessage] = useState('');
+  // const [notifySending, setNotifySending] = useState(false);
+  // const [notifySuccess, setNotifySuccess] = useState<string | null>(null);
+  // const [notifyError, setNotifyError] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
   const [editDate, setEditDate] = useState('');
   const [editImageFile, setEditImageFile] = useState<File | null>(null);
@@ -93,6 +99,9 @@ export default function AdminPage() {
     setReviews([]);
   };
 
+  // NOTIFY HANDLER — commented out for now
+  // const handleNotify = async (e: React.FormEvent) => { ... };
+
   const handleAddReview = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError('');
@@ -105,7 +114,6 @@ export default function AdminPage() {
 
     const fd = new FormData();
     fd.append('name', name);
-    fd.append('rating', String(rating));
     fd.append('text', text);
     fd.append('date', formattedDate);
     if (imageFile) fd.append('image', imageFile);
@@ -114,7 +122,6 @@ export default function AdminPage() {
     setSubmitting(false);
     if (res.ok) {
       setName('');
-      setRating(5);
       setText('');
       setDate('');
       setImageFile(null);
@@ -130,7 +137,6 @@ export default function AdminPage() {
   const openEdit = (review: Review) => {
     setEditReview(review);
     setEditName(review.name);
-    setEditRating(review.rating);
     setEditText(review.text);
     // Parse "January 15, 2026" back to YYYY-MM-DD for the date input
     const parsed = new Date(review.date);
@@ -158,7 +164,6 @@ export default function AdminPage() {
     const fd = new FormData();
     fd.append('id', editReview.id);
     fd.append('name', editName);
-    fd.append('rating', String(editRating));
     fd.append('text', editText);
     fd.append('date', formattedDate);
     fd.append('remove_image', editRemoveImage ? 'true' : 'false');
@@ -254,6 +259,35 @@ export default function AdminPage() {
             </button>
           </div>
 
+          {/* Tab Navigation */}
+          <div className="flex flex-wrap gap-2 mb-6 border-b-2 border-gray-200">
+            <button
+              onClick={() => setActiveTab('products')}
+              className={`px-4 py-2 text-sm font-semibold border-b-2 ${
+                activeTab === 'products'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Products
+            </button>
+            <button
+              onClick={() => setActiveTab('reviews')}
+              className={`px-4 py-2 text-sm font-semibold border-b-2 ${
+                activeTab === 'reviews'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Reviews
+            </button>
+          </div>
+
+          {/* Tab Content */}
+          {activeTab === 'products' && <AdminProductsTab />}
+
+          {activeTab === 'reviews' && (
+            <>
           {/* Add Review Form */}
           <section className="mb-8">
             <h2 className="text-sm font-bold text-gray-900 mb-4">Add New Review</h2>
@@ -266,20 +300,6 @@ export default function AdminPage() {
                 className="border-2 border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-900"
                 required
               />
-              <div className="flex items-center gap-3">
-                <label className="text-xs text-gray-700 shrink-0">Rating:</label>
-                <select
-                  value={rating}
-                  onChange={(e) => setRating(Number(e.target.value))}
-                  className="border-2 border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-900 flex-1"
-                >
-                  {[5, 4, 3, 2, 1].map((r) => (
-                    <option key={r} value={r}>
-                      {r} {'★'.repeat(r)}{'☆'.repeat(5 - r)}
-                    </option>
-                  ))}
-                </select>
-              </div>
               <textarea
                 placeholder="Review text"
                 value={text}
@@ -384,9 +404,6 @@ export default function AdminPage() {
                       )}
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-bold text-gray-900">{review.name}</p>
-                        <p className="text-[10px] text-yellow-500 mb-1">
-                          {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
-                        </p>
                         <p className="text-[10px] text-gray-700 line-clamp-2">{review.text}</p>
                         <p className="text-[10px] text-gray-400 mt-1">{review.date}</p>
                       </div>
@@ -412,6 +429,15 @@ export default function AdminPage() {
               )
             )}
           </section>
+            </>
+          )}
+
+          {/* NOTIFY SUBSCRIBERS SECTION — commented out for now
+          <section className="mt-8 pt-6 border-t-2 border-gray-200">
+            <h2>Notify Subscribers</h2>
+            ...(notify form)
+          </section>
+          */}
 
         </div>
       </div>
@@ -433,20 +459,6 @@ export default function AdminPage() {
                 className="border-2 border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-900"
                 required
               />
-              <div className="flex items-center gap-3">
-                <label className="text-xs text-gray-700 shrink-0">Rating:</label>
-                <select
-                  value={editRating}
-                  onChange={(e) => setEditRating(Number(e.target.value))}
-                  className="border-2 border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-900 flex-1"
-                >
-                  {[5, 4, 3, 2, 1].map((r) => (
-                    <option key={r} value={r}>
-                      {r} {'★'.repeat(r)}{'☆'.repeat(5 - r)}
-                    </option>
-                  ))}
-                </select>
-              </div>
               <textarea
                 placeholder="Review text"
                 value={editText}
