@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, Suspense } from 'react';
 import Link from 'next/link';
 
 const PINK = '#1520A6';
@@ -24,7 +24,7 @@ interface Order {
   customer_email?: string;
 }
 
-export default function InvoicePage() {
+function InvoiceContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('order_id');
   const [order, setOrder] = useState<Order | null>(null);
@@ -169,5 +169,13 @@ export default function InvoicePage() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function InvoicePage() {
+  return (
+    <Suspense>
+      <InvoiceContent />
+    </Suspense>
   );
 }

@@ -2,10 +2,11 @@
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
 const PINK = '#1520A6';
 
-export default function CheckoutCancelPage() {
+function CancelContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('order_id');
 
@@ -72,5 +73,13 @@ export default function CheckoutCancelPage() {
         }
       `}</style>
     </div>
+  );
+}
+
+export default function CheckoutCancelPage() {
+  return (
+    <Suspense>
+      <CancelContent />
+    </Suspense>
   );
 }
