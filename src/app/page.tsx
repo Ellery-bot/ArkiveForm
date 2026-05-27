@@ -41,16 +41,26 @@ export default function Home() {
                 <p className="text-center">
                   <a
                     className="social-link text-blue-100"
+                    href="https://www.facebook.com/profile.php?id=61580470037051"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Arkive on Facebook"
+                  >
+                    @ArkiveMarket
+                  </a>
+                </p>
+                <p className="text-justify" lang="en">
+                 Started in 2025,{" "}
+                  <a
+                    className="social-link text-blue-100"
                     href="/dti-certificate.pdf"
                     target="_blank"
                     rel="noreferrer"
                     aria-label="View DTI Business Registration Certificate"
                   >
-                    @DTI Registered Business
+                    DTI Registered Business
                   </a>
-                </p>
-                <p className="text-justify" lang="en">
-                 Started in 2025, this independent reselling business began as a passion project and has grown into a small enterprise. Every order is personally handled with care, prioritizing honesty, clear communication, and reliability. I am committed to providing authentic products while building strong, trustworthy relationships with my customers. 
+                  , this independent reselling business began as a passion project and has grown into a small enterprise. Every order is personally handled with care, prioritizing honesty, clear communication, and reliability. I am committed to providing authentic products while building strong, trustworthy relationships with my customers. 
                 </p>
               </div>
             </section>
