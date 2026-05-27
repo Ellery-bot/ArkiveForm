@@ -41,12 +41,12 @@ export default function Home() {
                 <p className="text-center">
                   <a
                     className="social-link text-blue-100"
-                    href="https://www.facebook.com/profile.php?id=61580470037051"
+                    href="/dti-certificate.pdf"
                     target="_blank"
                     rel="noreferrer"
-                    aria-label="Arkive on Facebook"
+                    aria-label="View DTI Business Registration Certificate"
                   >
-                    @clickhere
+                    @DTI Registered Business
                   </a>
                 </p>
                 <p className="text-justify" lang="en">
