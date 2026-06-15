@@ -14,20 +14,12 @@ export default function Home() {
 
             {/* Image Section */}
             <div className="mt-2 mb-3 rounded-lg overflow-hidden h-56 flex items-center justify-center">
-              {/* Logo text */}
-              <div className="flex-shrink-0 flex items-center justify-end h-full">
-                <div className="flex flex-col justify-center items-center text-center">
-                  <span className="typing-logo-text">Arkive</span>
-                  <span className="typing-subtitle">your trusted online shop</span>
-                </div>
-              </div>
-              {/* Cat + cart image — fixed width */}
-              <div className="relative h-full flex-shrink-0" style={{ width: '240px' }}>
+              <div className="relative h-full w-full">
                 <Image
-                  src="/arkive-cat.png"
+                  src="/logo.png"
                   alt="Arkive Market"
                   fill
-                  className="object-contain object-left"
+                  className="object-contain"
                   priority
                   quality={100}
                 />
