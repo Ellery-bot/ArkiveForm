@@ -163,7 +163,7 @@ export default function ShopShell({ category, children }: ShopShellProps) {
         <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '40px', marginBottom: '40px' }}>
           {/* Brand */}
           <div style={{ minWidth: 0, overflowWrap: 'break-word' }}>
-            <div style={{ fontWeight: 800, fontSize: '20px', color: PINK, letterSpacing: '0.04em', marginBottom: '16px' }}>ARKIVE MARKET</div>
+            <div style={{ fontWeight: 800, fontSize: '20px', color: '#121212', letterSpacing: '0.04em', marginBottom: '16px' }}>ARKIVE MARKET</div>
             <p style={{ fontSize: '13px', color: '#555', margin: '0 0 8px' }}>
               <span style={{ fontWeight: 700, color: '#121212' }}>Email: </span>
               <a href="mailto:arkivemarketshop@gmail.com" style={{ color: '#555', textDecoration: 'none' }}>arkivemarketshop@gmail.com</a>

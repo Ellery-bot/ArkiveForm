@@ -131,14 +131,14 @@ export default function ChatBot({ faqs }: ChatBotProps) {
         >
           {/* Avatar Circle */}
           <motion.div
-            className="w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 flex items-center justify-center relative z-20"
+            className="w-40 h-40 sm:w-56 sm:h-56 md:w-72 md:h-72 flex items-center justify-center relative z-20"
             whileHover={{ scale: 1.05 }}
           >
             {/* Snorlax Image */}
             <img
-              src="/snorlax.png"
+              src="/spacecat.png"
               alt="Snorlax"
-              className="w-28 h-28 sm:w-44 sm:h-44 md:w-56 md:h-56 object-contain cursor-pointer select-none"
+              className="w-36 h-36 sm:w-52 sm:h-52 md:w-64 md:h-64 object-contain cursor-pointer select-none"
               onClick={() => setIsChatVisible((prev) => !prev)}
             />
           </motion.div>
