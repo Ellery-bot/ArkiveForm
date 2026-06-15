@@ -52,7 +52,7 @@ export default function Home() {
                   >
                     DTI Registered Business
                   </a>
-                  , this independent reselling business began as a passion project and has grown into a small enterprise. Every order is personally handled with care, prioritizing honesty, clear communication, and reliability. I am committed to providing authentic products while building strong, trustworthy relationships with my customers. 
+                  , this independent reselling business began as a passion project and has grown into a small enterprise. Every order is personally handled with care, prioritizing honesty, clear communication, and reliability. We are committed to providing authentic products while building strong, trustworthy relationships with my customers. 
                 </p>
               </div>
             </section>
