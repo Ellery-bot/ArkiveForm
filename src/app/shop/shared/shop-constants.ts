@@ -14,12 +14,15 @@ export const NAV_LINKS = [
 /** Base product-type categories always pinned to the end of the nav. */
 export const BASE_CATEGORIES = ['preorder', 'onhand', 'lightsticks', 'photocards'];
 
+const PINNED_FIRST = ['preorder', 'onhand'];
+const PINNED_LAST  = ['lightsticks', 'photocards'];
+
 /**
- * Sorts categories so custom/artist ones come first (alphabetically),
- * followed by base product-type ones in their original order.
+ * Sort order: preorder → onhand → custom (a–z) → lightsticks → photocards
  */
 export function sortCategories(categories: string[]): string[] {
-  const base = BASE_CATEGORIES.filter((c) => categories.includes(c));
+  const first  = PINNED_FIRST.filter((c) => categories.includes(c));
+  const last   = PINNED_LAST.filter((c) => categories.includes(c));
   const custom = categories.filter((c) => !BASE_CATEGORIES.includes(c)).sort();
-  return [...custom, ...base];
+  return [...first, ...custom, ...last];
 }
