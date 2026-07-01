@@ -132,9 +132,9 @@ function InvoiceContent() {
                 <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
                   <td style={{ padding: '10px 0', color: '#121212', fontWeight: 500 }}>{item.title}</td>
                   <td style={{ padding: '10px 8px', textAlign: 'center', color: '#444' }}>{item.quantity}</td>
-                  <td style={{ padding: '10px 0', textAlign: 'right', color: '#444' }}>₱{item.price.toFixed(2)}</td>
+                  <td style={{ padding: '10px 0', textAlign: 'right', color: '#444' }}>₱{item.price.toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
                   <td style={{ padding: '10px 0 10px 16px', textAlign: 'right', color: '#121212', fontWeight: 500 }}>
-                    ₱{(item.price * item.quantity).toFixed(2)}
+                    ₱{(item.price * item.quantity).toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                   </td>
                 </tr>
               ))}
@@ -145,7 +145,7 @@ function InvoiceContent() {
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '32px' }}>
             <div style={{ background: '#f3f4f6', borderRadius: '8px', padding: '14px 20px', minWidth: '200px', textAlign: 'right' }}>
               <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>Total Amount</div>
-              <div style={{ fontSize: '22px', fontWeight: 800, color: PINK }}>₱{order.total_amount.toFixed(2)}</div>
+              <div style={{ fontSize: '22px', fontWeight: 800, color: PINK }}>₱{order.total_amount.toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
             </div>
           </div>
 
