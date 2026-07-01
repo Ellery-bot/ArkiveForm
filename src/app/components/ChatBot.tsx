@@ -55,7 +55,7 @@ export default function ChatBot({ faqs }: ChatBotProps) {
           animate="visible"
           className="w-full max-w-2xl"
         >
-              <div className="bg-white rounded-3xl shadow-2xl p-4 sm:p-8 md:p-10 relative border-4 border-black">
+              <div className="bg-white rounded-3xl shadow-2xl p-4 sm:p-8 md:p-10 relative border-4 border-black cursor-reset-zone">
                 {/* Chat bubble tail pointing right toward cat */}
                 <div
                   className="hidden md:block absolute top-1/2 -right-8 transform -translate-y-1/2"
@@ -117,7 +117,7 @@ export default function ChatBot({ faqs }: ChatBotProps) {
         variants={characterVariants}
         initial="hidden"
         animate="visible"
-        className="flex-shrink-0 relative overflow-hidden h-72 w-full md:h-auto md:w-[520px]"
+        className="flex-shrink-0 relative h-72 w-full md:h-auto md:w-[520px]"
       >
         <img
           src="/spacecat.png"
@@ -138,18 +138,18 @@ export default function ChatBot({ faqs }: ChatBotProps) {
           width: 700px;
           max-width: none;
           position: absolute;
-          top: -5px;
+          top: 20px;
           left: 50%;
           transform: translateX(-50%);
           image-rendering: pixelated;
           pointer-events: none;
           user-select: none;
         }
-        /* Desktop: 1600px wide, top -30px offset shows full dome to collar */
+        /* Desktop: 1600px wide, top 60px offset shows full dome to collar */
         @media (min-width: 768px) {
           .cat-image {
             width: 1600px;
-            top: -30px;
+            top: 60px;
           }
         }
       `}</style>

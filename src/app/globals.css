@@ -34,6 +34,58 @@ a, button, [role="button"], select, input[type="submit"], input[type="button"], 
   cursor: url('/pcursor.png') 0 0, pointer !important;
 }
 
+/* White cursor for the starry background */
+.white-cursor-zone {
+  cursor: url('/cursor-white.svg') 0 0, auto !important;
+}
+/* Reset to normal cursor on all content areas across every page */
+.white-cursor-zone .card,
+.white-cursor-zone .card *,
+.white-cursor-zone main,
+.white-cursor-zone main *,
+.white-cursor-zone .invoice-wrapper,
+.white-cursor-zone .invoice-wrapper *,
+.white-cursor-zone .cursor-reset-zone,
+.white-cursor-zone .cursor-reset-zone *,
+.white-cursor-zone .invoice-page,
+.white-cursor-zone .invoice-page * {
+  cursor: url('/cursor.png') 0 0, auto !important;
+}
+/* Restore pointer cursor on interactive elements inside content areas */
+.white-cursor-zone .card a,
+.white-cursor-zone .card button,
+.white-cursor-zone .card [role="button"],
+.white-cursor-zone .card select,
+.white-cursor-zone .card input[type="submit"],
+.white-cursor-zone .card input[type="button"],
+.white-cursor-zone .card label[for],
+.white-cursor-zone .card [tabindex]:not([tabindex="-1"]),
+.white-cursor-zone .card .cursor-pointer,
+.white-cursor-zone main a,
+.white-cursor-zone main button,
+.white-cursor-zone main [role="button"],
+.white-cursor-zone main select,
+.white-cursor-zone main input[type="submit"],
+.white-cursor-zone main input[type="button"],
+.white-cursor-zone main label[for],
+.white-cursor-zone main [tabindex]:not([tabindex="-1"]),
+.white-cursor-zone main .cursor-pointer,
+.white-cursor-zone .invoice-wrapper a,
+.white-cursor-zone .invoice-wrapper button,
+.white-cursor-zone .cursor-reset-zone a,
+.white-cursor-zone .cursor-reset-zone button,
+.white-cursor-zone .cursor-reset-zone [role="button"],
+.white-cursor-zone .cursor-reset-zone select,
+.white-cursor-zone .cursor-reset-zone input[type="submit"],
+.white-cursor-zone .cursor-reset-zone input[type="button"],
+.white-cursor-zone .cursor-reset-zone label[for],
+.white-cursor-zone .cursor-reset-zone [tabindex]:not([tabindex="-1"]),
+.white-cursor-zone .cursor-reset-zone .cursor-pointer,
+.white-cursor-zone .invoice-page a,
+.white-cursor-zone .invoice-page button {
+  cursor: url('/pcursor.png') 0 0, pointer !important;
+}
+
 * {
   box-sizing: border-box;
   font-family: var(--font-pixel), 'Press Start 2P', monospace !important;

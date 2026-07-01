@@ -42,7 +42,7 @@ export default function RootLayout({
     <html lang="en">
       <body
         suppressHydrationWarning
-        className={`${pixelFont.variable} ${cormorantGaramond.variable} ${dmSans.variable} antialiased`}
+        className={`${pixelFont.variable} ${cormorantGaramond.variable} ${dmSans.variable} antialiased white-cursor-zone`}
       >
         <CartProvider>
           <ClickSound />

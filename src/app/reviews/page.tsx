@@ -78,7 +78,7 @@ export default function ReviewsPage() {
       <div className="w-full max-w-xs sm:max-w-md lg:max-w-xl mx-auto">
         {/* Gameboy shell - fixed dimensions for stable layout */}
         <div
-          className="rounded-[2rem] p-4 sm:p-6 md:p-8 shadow-2xl w-full"
+          className="rounded-[2rem] p-4 sm:p-6 md:p-8 shadow-2xl w-full cursor-reset-zone"
           style={{
             background: 'linear-gradient(180deg, #8b8b9e 0%, #5c5c6b 40%, #4a4a56 100%)',
             border: '4px solid #3d3d47',

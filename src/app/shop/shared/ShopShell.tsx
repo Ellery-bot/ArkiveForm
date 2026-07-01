@@ -108,7 +108,7 @@ export default function ShopShell({ category, children }: ShopShellProps) {
   }, [cartItems]);
 
   return (
-    <div style={{ background: '#fff', color: '#121212', minHeight: '100vh', fontFamily: FONT, overflowX: 'hidden' }}>
+    <div className="cursor-reset-zone" style={{ background: '#fff', color: '#121212', minHeight: '100vh', fontFamily: FONT, overflowX: 'hidden' }}>
       {/* Announcement banner */}
       <div style={{ background: PINK, color: '#fff', textAlign: 'center', padding: '10px 16px', fontSize: '14px' }}>
         Shipping fees are all estimated. For bulk orders and international shipping, please DM us!
