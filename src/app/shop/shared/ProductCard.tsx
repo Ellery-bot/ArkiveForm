@@ -98,10 +98,10 @@ export default function ProductCard({
 
       {/* Product info */}
       <div style={{ paddingTop: '8px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-        <h3 style={{ fontSize: '13px', fontWeight: 400, margin: '0 0 6px', lineHeight: 1.4, color: '#121212' }}>
+        <h3 style={{ fontSize: '13px', fontWeight: 400, margin: '0 0 6px', lineHeight: 1.4, color: '#121212', minHeight: '7em' }}>
           {product.title}
         </h3>
-        <div style={{ marginBottom: '10px' }}>
+        <div style={{ marginBottom: '10px', minHeight: '56px' }}>
           {salePrice && (
             <s style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '2px' }}>
               ₱{product.original_price!.toFixed(2)}
