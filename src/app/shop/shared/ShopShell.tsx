@@ -1,10 +1,14 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useCart } from '@/lib/cart-context';
-import { PINK, FONT, BG_COLORS, NAV_LINKS } from './shop-constants';
+import { PINK, FONT, BG_COLORS, sortCategories } from './shop-constants';
 import type { Product } from './shop-types';
+
+function categoryToLabel(slug: string): string {
+  return slug.toUpperCase().replace(/-/g, ' ');
+}
 
 interface Notification {
   title: string;
@@ -26,6 +30,43 @@ export default function ShopShell({ category, children }: ShopShellProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [notification, setNotification] = useState<Notification | null>(null);
   const [checkingOut, setCheckingOut] = useState(false);
+  const [navCategories, setNavCategories] = useState<string[]>([]);
+
+  // Cursor-driven nav scroll
+  const navListRef = useRef<HTMLUListElement>(null);
+  const navRafRef = useRef<number | null>(null);
+  const navTargetScroll = useRef(0);
+
+  const tickNavScroll = useCallback(() => {
+    const el = navListRef.current;
+    if (!el) return;
+    const diff = navTargetScroll.current - el.scrollLeft;
+    if (Math.abs(diff) > 0.5) {
+      el.scrollLeft += diff * 0.1;
+      navRafRef.current = requestAnimationFrame(tickNavScroll);
+    } else {
+      el.scrollLeft = navTargetScroll.current;
+      navRafRef.current = null;
+    }
+  }, []);
+
+  const handleNavMouseMove = useCallback((e: React.MouseEvent<HTMLElement>) => {
+    const el = navListRef.current;
+    if (!el) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const relX = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    navTargetScroll.current = relX * (el.scrollWidth - el.clientWidth);
+    if (!navRafRef.current) {
+      navRafRef.current = requestAnimationFrame(tickNavScroll);
+    }
+  }, [tickNavScroll]);
+
+  useEffect(() => {
+    fetch('/api/categories')
+      .then((r) => r.json())
+      .then((d) => setNavCategories(Array.isArray(d) ? sortCategories(d) : []))
+      .catch(() => {});
+  }, []);
 
   const handleAddToCart = useCallback((product: Product, qty: number) => {
     addToCart(
@@ -94,14 +135,21 @@ export default function ShopShell({ category, children }: ShopShellProps) {
             ARKIVE MARKET
           </Link>
 
-          <nav style={{ marginLeft: '20px', display: 'none' }} className="shop-nav-desktop">
-            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', alignItems: 'center' }}>
-              {NAV_LINKS.map((link) => {
-                const isActive = category != null && link.href === `/shop/${category}`;
+          <nav
+            style={{ marginLeft: '20px', display: 'none' }}
+            className="shop-nav-desktop"
+            onMouseMove={handleNavMouseMove}
+          >
+            <ul
+              ref={navListRef}
+              style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', alignItems: 'center', overflowX: 'hidden' }}
+            >
+              {navCategories.map((cat) => {
+                const isActive = category === cat;
                 return (
-                  <li key={link.label}>
+                  <li key={cat}>
                     <a
-                      href={link.href}
+                      href={`/shop/${cat}`}
                       style={{
                         fontSize: '13px',
                         color: isActive ? PINK : '#121212',
@@ -113,7 +161,7 @@ export default function ShopShell({ category, children }: ShopShellProps) {
                         borderBottom: isActive ? `2px solid ${PINK}` : '2px solid transparent',
                       }}
                     >
-                      {link.label}
+                      {categoryToLabel(cat)}
                     </a>
                   </li>
                 );
@@ -257,12 +305,12 @@ export default function ShopShell({ category, children }: ShopShellProps) {
             </div>
             <nav className="shop-menu-nav">
               <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                {NAV_LINKS.map((link) => {
-                  const isActive = category != null && link.href === `/shop/${category}`;
+                {navCategories.map((cat) => {
+                  const isActive = category === cat;
                   return (
-                    <li key={link.label} style={{ borderBottom: '1px solid #f5f5f5' }}>
+                    <li key={cat} style={{ borderBottom: '1px solid #f5f5f5' }}>
                       <a
-                        href={link.href}
+                        href={`/shop/${cat}`}
                         onClick={() => setMenuOpen(false)}
                         style={{
                           fontSize: '14px',
@@ -274,7 +322,7 @@ export default function ShopShell({ category, children }: ShopShellProps) {
                           letterSpacing: '0.05em',
                         }}
                       >
-                        {link.label}
+                        {categoryToLabel(cat)}
                       </a>
                     </li>
                   );

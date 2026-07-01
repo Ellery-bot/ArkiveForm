@@ -1,23 +1,18 @@
 ﻿'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, notFound } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import ShopShell from '../shared/ShopShell';
 import ProductCard from '../shared/ProductCard';
 import type { Product } from '../shared/shop-types';
 
-const CATEGORY_HEADINGS: Record<string, string> = {
-  preorder: 'PRE ORDER',
-  onhand: 'ON HAND',
-  lightsticks: 'LIGHTSTICKS',
-  photocards: 'PHOTOCARDS',
-};
+function categoryToLabel(slug: string): string {
+  return slug.toUpperCase().replace(/-/g, ' ');
+}
 
 export default function CategoryPage() {
   const params = useParams();
   const category = (params?.category as string) ?? '';
-
-  if (!CATEGORY_HEADINGS[category]) notFound();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,7 +30,7 @@ export default function CategoryPage() {
         <section style={{ padding: '40px 0' }}>
           <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
             <h2 style={{ fontWeight: 700, fontSize: '28px', marginBottom: '24px', color: '#121212', letterSpacing: '0.02em' }}>
-              {CATEGORY_HEADINGS[category]}
+              {categoryToLabel(category)}
             </h2>
             {loading ? (
               <div style={{ padding: '40px 0', textAlign: 'center' }}>Loading products...</div>

@@ -1,16 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { motion } from "framer-motion";
 
 interface ChatBotProps {
   faqs: Array<{ question: string; answer: string }>;
 }
 
 export default function ChatBot({ faqs }: ChatBotProps) {
-  const [isChatVisible, setIsChatVisible] = useState(true);
-
   const characterVariants = {
     hidden: { y: 100, x: 50, opacity: 0 },
     visible: {
@@ -49,22 +46,18 @@ export default function ChatBot({ faqs }: ChatBotProps) {
 
 
   return (
-    <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
-      {/* Main container for chat and character */}
-      <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 max-w-6xl w-full">
-        {/* Chat Bubble - Left Side */}
-        <AnimatePresence>
-          {isChatVisible && (
-            <motion.div
-              variants={chatBubbleVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="flex-1 min-w-0"
-            >
+    <div className="min-h-screen relative overflow-hidden flex flex-col md:flex-row items-stretch">
+      {/* Left - Chat Bubble */}
+      <div className="flex-1 flex items-center justify-center p-4 md:p-8 md:pl-12">
+        <motion.div
+          variants={chatBubbleVariants}
+          initial="hidden"
+          animate="visible"
+          className="w-full max-w-2xl"
+        >
               <div className="bg-white rounded-3xl shadow-2xl p-4 sm:p-8 md:p-10 relative border-4 border-black">
-                {/* Chat bubble tail pointing to character - thicker and larger */}
-                <div 
+                {/* Chat bubble tail pointing right toward cat */}
+                <div
                   className="hidden md:block absolute top-1/2 -right-8 transform -translate-y-1/2"
                   style={{
                     width: 0,
@@ -72,20 +65,18 @@ export default function ChatBot({ faqs }: ChatBotProps) {
                     borderTop: '20px solid transparent',
                     borderBottom: '20px solid transparent',
                     borderLeft: '20px solid black',
-                    borderRight: '0px solid transparent',
                   }}
-                ></div>
-                <div 
-                  className="hidden md:block absolute top-1/2 -right-6 transform -translate-y-1/2"
+                />
+                <div
+                  className="hidden md:block absolute top-1/2 -right-[26px] transform -translate-y-1/2"
                   style={{
                     width: 0,
                     height: 0,
-                    borderTop: '18px solid transparent',
-                    borderBottom: '18px solid transparent',
-                    borderLeft: '18px solid white',
-                    borderRight: '0px solid transparent',
+                    borderTop: '17px solid transparent',
+                    borderBottom: '17px solid transparent',
+                    borderLeft: '17px solid white',
                   }}
-                ></div>
+                />
 
                 {/* Title + Back link */}
                 <div className="mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4">
@@ -119,50 +110,47 @@ export default function ChatBot({ faqs }: ChatBotProps) {
                 </div>
               </div>
             </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Character - Right Side */}
-        <motion.div
-          variants={characterVariants}
-          initial="hidden"
-          animate="visible"
-          className="flex-shrink-0 flex flex-col items-center"
-        >
-          {/* Avatar Circle */}
-          <motion.div
-            className="w-40 h-40 sm:w-56 sm:h-56 md:w-72 md:h-72 flex items-center justify-center relative z-20"
-            whileHover={{ scale: 1.05 }}
-          >
-            {/* Snorlax Image */}
-            <img
-              src="/spacecat.png"
-              alt="Snorlax"
-              className="w-36 h-36 sm:w-52 sm:h-52 md:w-64 md:h-64 object-contain cursor-pointer select-none"
-              onClick={() => setIsChatVisible((prev) => !prev)}
-            />
-          </motion.div>
-        </motion.div>
       </div>
 
+      {/* Cat — stacks below FAQ on mobile, right panel on desktop */}
+      <motion.div
+        variants={characterVariants}
+        initial="hidden"
+        animate="visible"
+        className="flex-shrink-0 relative overflow-hidden h-72 w-full md:h-auto md:w-[520px]"
+      >
+        <img
+          src="/spacecat.png"
+          alt="Space Cat"
+          className="cat-image"
+        />
+      </motion.div>
+
       <style jsx>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 0px;
+        .custom-scrollbar::-webkit-scrollbar { width: 0px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #111111; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #000000; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #000000; }
+        .custom-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+
+        /* Cat image — mobile: 700px wide shows full head in h-72 container */
+        .cat-image {
+          width: 700px;
+          max-width: none;
+          position: absolute;
+          top: -5px;
+          left: 50%;
+          transform: translateX(-50%);
+          image-rendering: pixelated;
+          pointer-events: none;
+          user-select: none;
         }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #111111;
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #000000;
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #000000;
-        }
-        .custom-scrollbar {
-          scrollbar-width: none;
-          -ms-overflow-style: none;
+        /* Desktop: 1600px wide, top -30px offset shows full dome to collar */
+        @media (min-width: 768px) {
+          .cat-image {
+            width: 1600px;
+            top: -30px;
+          }
         }
       `}</style>
     </div>

@@ -10,3 +10,16 @@ export const NAV_LINKS = [
   { label: 'LIGHTSTICKS', href: '/shop/lightsticks' },
   { label: 'PHOTOCARDS', href: '/shop/photocards' },
 ] as const;
+
+/** Base product-type categories always pinned to the end of the nav. */
+export const BASE_CATEGORIES = ['preorder', 'onhand', 'lightsticks', 'photocards'];
+
+/**
+ * Sorts categories so custom/artist ones come first (alphabetically),
+ * followed by base product-type ones in their original order.
+ */
+export function sortCategories(categories: string[]): string[] {
+  const base = BASE_CATEGORIES.filter((c) => categories.includes(c));
+  const custom = categories.filter((c) => !BASE_CATEGORIES.includes(c)).sort();
+  return [...custom, ...base];
+}

@@ -33,11 +33,31 @@ export function AdminProductsTab() {
   const [submitting, setSubmitting] = useState(false);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Category management
+  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
+  const [showCatMgmt, setShowCatMgmt] = useState(false);
+  const [newCatName, setNewCatName] = useState('');
+  const [catError, setCatError] = useState('');
+  const [catAdding, setCatAdding] = useState(false);
+  const [catRemoving, setCatRemoving] = useState<string | null>(null);
+
   const showError = (msg: string) => {
     setError(msg);
     if (toastTimer.current) clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setError(''), 4000);
   };
+
+  const fetchCategories = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/categories');
+      if (res.ok) {
+        const data = await res.json();
+        setAvailableCategories(Array.isArray(data) ? data : []);
+      }
+    } catch (e) {
+      console.error('Failed to fetch categories:', e);
+    }
+  }, []);
 
   const fetchProducts = useCallback(async () => {
     try {
@@ -55,10 +75,46 @@ export function AdminProductsTab() {
     }
   }, []);
 
-  // Load products on mount
+  // Load products and categories on mount
   useEffect(() => {
     fetchProducts();
-  }, [fetchProducts]);
+    fetchCategories();
+  }, [fetchProducts, fetchCategories]);
+
+  const handleAddCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const name = newCatName.trim().toLowerCase().replace(/\s+/g, '-');
+    if (!name) return;
+    setCatError('');
+    setCatAdding(true);
+    const res = await fetch('/api/admin/categories', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name }),
+    });
+    setCatAdding(false);
+    if (res.ok) {
+      setNewCatName('');
+      fetchCategories();
+    } else {
+      const err = await res.json();
+      setCatError(err.error ?? 'Failed to add category.');
+    }
+  };
+
+  const handleRemoveCategory = async (name: string) => {
+    setCatRemoving(name);
+    const res = await fetch('/api/admin/categories', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name }),
+    });
+    setCatRemoving(null);
+    if (res.ok) {
+      fetchCategories();
+      setCategories((prev) => prev.filter((c) => c !== name));
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -165,8 +221,6 @@ export function AdminProductsTab() {
     }
   };
 
-  const categoryOptions = ['preorder', 'onhand', 'lightsticks', 'photocards'];
-
   return (
     <>
       {error && (
@@ -180,6 +234,65 @@ export function AdminProductsTab() {
           ⚠ {error}
         </div>
       )}
+      {/* Manage Categories */}
+      <div className="mb-6 border-2 border-gray-200 rounded-lg overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setShowCatMgmt((v) => !v)}
+          className="w-full flex justify-between items-center px-4 py-3 text-xs font-bold text-gray-900 bg-gray-50 hover:bg-gray-100 transition-colors"
+        >
+          <span>Manage Categories</span>
+          <span className="text-[10px]">{showCatMgmt ? '▲ Hide' : '▼ Show'}</span>
+        </button>
+        {showCatMgmt && (
+          <div className="px-4 py-3 flex flex-col gap-3">
+            {/* Existing categories */}
+            {availableCategories.length === 0 ? (
+              <p className="text-xs text-gray-400">No categories yet.</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {availableCategories.map((cat) => (
+                  <span
+                    key={cat}
+                    className="inline-flex items-center gap-1 bg-gray-100 border border-gray-300 rounded-full px-3 py-1 text-xs text-gray-700"
+                  >
+                    {cat}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveCategory(cat)}
+                      disabled={catRemoving === cat}
+                      className="text-red-400 hover:text-red-600 ml-1 leading-none disabled:opacity-40"
+                      aria-label={`Remove ${cat}`}
+                    >
+                      {catRemoving === cat ? '…' : '✕'}
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+            {/* Add new category */}
+            <form onSubmit={handleAddCategory} className="flex gap-2 items-center">
+              <input
+                type="text"
+                placeholder="new-category"
+                value={newCatName}
+                onChange={(e) => setNewCatName(e.target.value)}
+                className="border-2 border-gray-300 rounded-lg px-3 py-1.5 text-xs text-gray-900 flex-1"
+              />
+              <button
+                type="submit"
+                disabled={catAdding || !newCatName.trim()}
+                className="btn-primary text-xs py-1.5 px-3 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {catAdding ? '…' : '+ Add'}
+              </button>
+            </form>
+            {catError && <p className="text-red-600 text-[10px]">{catError}</p>}
+            <p className="text-[10px] text-gray-400">Names are lowercased and spaces become hyphens.</p>
+          </div>
+        )}
+      </div>
+
       <div className="mb-8">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-sm font-bold text-gray-900">Manage Products</h2>
@@ -255,7 +368,7 @@ export function AdminProductsTab() {
           <div className="flex flex-col gap-1">
             <label className="text-xs text-gray-700">Categories <span style={{ color: '#dc2626' }}>*</span></label>
             <div className="flex flex-wrap gap-2">
-              {categoryOptions.map((cat) => (
+              {availableCategories.map((cat) => (
                 <label key={cat} className="flex items-center gap-1 text-xs text-gray-700">
                   <input
                     type="checkbox"
