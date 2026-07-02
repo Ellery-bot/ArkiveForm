@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     const price = formData.get('price') as string | null;
     const originalPrice = formData.get('originalPrice') as string | null;
     const categoriesRaw = formData.get('categories') as string | null;
-    const imageFile = formData.get('image') as File | null;
+    const imageFiles = formData.getAll('images') as File[];
     const active = formData.get('active') === 'true';
     const quantityRaw = formData.get('quantity') as string | null;
 
@@ -78,10 +78,10 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = createServerSupabase();
-    let imageUrl: string | null = null;
+    const imageUrls: string[] = [];
 
-    // Upload image if provided
-    if (imageFile && imageFile.size > 0) {
+    // Upload images if provided
+    if (imageFiles && imageFiles.length > 0) {
       // Ensure bucket exists (creates it if missing)
       const { data: buckets } = await supabase.storage.listBuckets();
       const bucketExists = buckets?.some((b) => b.name === 'product-images');
@@ -89,24 +89,28 @@ export async function POST(req: NextRequest) {
         await supabase.storage.createBucket('product-images', { public: true });
       }
 
-      const bytes = await imageFile.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-      const ext = imageFile.name.split('.').pop()?.toLowerCase() ?? 'jpg';
-      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      for (const imageFile of imageFiles) {
+        if (imageFile.size > 0) {
+          const bytes = await imageFile.arrayBuffer();
+          const buffer = Buffer.from(bytes);
+          const ext = imageFile.name.split('.').pop()?.toLowerCase() ?? 'jpg';
+          const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('product-images')
-        .upload(fileName, buffer, { contentType: imageFile.type });
+          const { error: uploadError } = await supabase.storage
+            .from('product-images')
+            .upload(fileName, buffer, { contentType: imageFile.type });
 
-      if (uploadError) {
-        return NextResponse.json(
-          { error: `Image upload failed: ${uploadError.message}` },
-          { status: 500 }
-        );
+          if (uploadError) {
+            return NextResponse.json(
+              { error: `Image upload failed: ${uploadError.message}` },
+              { status: 500 }
+            );
+          }
+
+          const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(fileName);
+          imageUrls.push(urlData.publicUrl);
+        }
       }
-
-      const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(fileName);
-      imageUrl = urlData.publicUrl;
     }
 
     const { data, error } = await supabase
@@ -118,7 +122,8 @@ export async function POST(req: NextRequest) {
           price: priceNum,
           original_price: originalPrice ? parseFloat(originalPrice) : null,
           categories,
-          image_url: imageUrl,
+          image_url: imageUrls[0] ?? null,
+          image_urls: imageUrls,
           active,
           quantity: quantityNum,
         },
@@ -154,13 +159,26 @@ export async function PATCH(req: NextRequest) {
     const price = formData.get('price') as string | null;
     const originalPrice = formData.get('originalPrice') as string | null;
     const categoriesRaw = formData.get('categories') as string | null;
-    const imageFile = formData.get('image') as File | null;
-    const removeImage = formData.get('removeImage') === 'true';
+    const imageFiles = formData.getAll('images') as File[];
+    const existingImageUrlsRaw = formData.get('existingImageUrls') as string | null;
     const active = formData.get('active') === 'true';
     const quantityRaw = formData.get('quantity') as string | null;
 
     if (!id) {
       return NextResponse.json({ error: 'Product ID is required' }, { status: 400 });
+    }
+
+    const supabase = createServerSupabase();
+
+    // Get current product state
+    const { data: product, error: fetchError } = await supabase
+      .from('products')
+      .select('image_urls')
+      .eq('id', id)
+      .single();
+
+    if (fetchError) {
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
     const updateData: Record<string, any> = {};
@@ -195,38 +213,60 @@ export async function PATCH(req: NextRequest) {
       }
     }
 
-    const supabase = createServerSupabase();
+    let existingImageUrls: string[] = [];
+    if (existingImageUrlsRaw) {
+      try {
+        existingImageUrls = JSON.parse(existingImageUrlsRaw);
+      } catch {
+        // ignore
+      }
+    }
 
-    // Handle image updates
-    if (removeImage) {
-      updateData.image_url = null;
-    } else if (imageFile && imageFile.size > 0) {
-      // Ensure bucket exists (creates it if missing)
+    // Delete images that were removed
+    const currentImageUrls = product?.image_urls ?? [];
+    const imagesToDelete = currentImageUrls.filter((url: string) => !existingImageUrls.includes(url));
+    if (imagesToDelete.length > 0) {
+      const fileNamesToDelete = imagesToDelete.map((url: string) => url.split('/').pop() as string);
+      await supabase.storage.from('product-images').remove(fileNamesToDelete);
+    }
+    
+    // Handle image uploads
+    const newImageUrls: string[] = [];
+    if (imageFiles && imageFiles.length > 0) {
       const { data: buckets } = await supabase.storage.listBuckets();
       const bucketExists = buckets?.some((b) => b.name === 'product-images');
       if (!bucketExists) {
         await supabase.storage.createBucket('product-images', { public: true });
       }
 
-      const bytes = await imageFile.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-      const ext = imageFile.name.split('.').pop()?.toLowerCase() ?? 'jpg';
-      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      for (const imageFile of imageFiles) {
+        if (imageFile.size > 0) {
+          const bytes = await imageFile.arrayBuffer();
+          const buffer = Buffer.from(bytes);
+          const ext = imageFile.name.split('.').pop()?.toLowerCase() ?? 'jpg';
+          const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('product-images')
-        .upload(fileName, buffer, { contentType: imageFile.type });
+          const { error: uploadError } = await supabase.storage
+            .from('product-images')
+            .upload(fileName, buffer, { contentType: imageFile.type });
 
-      if (uploadError) {
-        return NextResponse.json(
-          { error: `Image upload failed: ${uploadError.message}` },
-          { status: 500 }
-        );
+          if (uploadError) {
+            return NextResponse.json(
+              { error: `Image upload failed: ${uploadError.message}` },
+              { status: 500 }
+            );
+          }
+
+          const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(fileName);
+          newImageUrls.push(urlData.publicUrl);
+        }
       }
-
-      const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(fileName);
-      updateData.image_url = urlData.publicUrl;
     }
+
+    const finalImageUrls = [...existingImageUrls, ...newImageUrls];
+    updateData.image_urls = finalImageUrls;
+    updateData.image_url = finalImageUrls[0] ?? null;
+
 
     const { data, error } = await supabase
       .from('products')

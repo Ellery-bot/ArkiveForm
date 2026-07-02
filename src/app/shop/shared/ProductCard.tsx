@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { PINK, BG_COLORS } from './shop-constants';
 import type { Product } from './shop-types';
@@ -28,6 +28,34 @@ export default function ProductCard({
   const salePrice = product.original_price != null && product.original_price > product.price;
   const isSoldOut = !product.active || product.quantity === 0;
 
+  // Build image list — prefer image_urls array, fall back to single image_url
+  const images: string[] =
+    product.image_urls && product.image_urls.length > 0
+      ? product.image_urls
+      : product.image_url
+      ? [product.image_url]
+      : [];
+
+  const [imgIndex, setImgIndex] = useState(0);
+  const [imgHovered, setImgHovered] = useState(false);
+  const touchStartX = useRef<number | null>(null);
+
+  const prevImg = useCallback(
+    (e: React.MouseEvent) => { e.stopPropagation(); setImgIndex(i => (i - 1 + images.length) % images.length); },
+    [images.length],
+  );
+  const nextImg = useCallback(
+    (e: React.MouseEvent) => { e.stopPropagation(); setImgIndex(i => (i + 1) % images.length); },
+    [images.length],
+  );
+  const handleTouchStart = (e: React.TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const diff = touchStartX.current - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 30) diff > 0 ? setImgIndex(i => (i + 1) % images.length) : setImgIndex(i => (i - 1 + images.length) % images.length);
+    touchStartX.current = null;
+  };
+
   const handleDirectCheckout = useCallback(async () => {
     if (isSoldOut || checkingOut) return;
     setCheckingOut(true);
@@ -50,33 +78,79 @@ export default function ProductCard({
   }, [isSoldOut, checkingOut, product, qty, router]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Image / color block */}
       <div
-        style={{
-          position: 'relative',
-          aspectRatio: '1',
-          background: product.image_url ? 'transparent' : bg,
-          backgroundImage: product.image_url ? `url(${product.image_url})` : undefined,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          overflow: 'hidden',
-          padding: '12px',
-        }}
+        style={{ position: 'relative', aspectRatio: '1', overflow: 'hidden', background: images.length === 0 ? bg : '#f0f0f0', flexShrink: 0 }}
+        onMouseEnter={() => setImgHovered(true)}
+        onMouseLeave={() => setImgHovered(false)}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
       >
-        {!product.image_url && (
-          <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: '11px', fontWeight: 600, textAlign: 'center', lineHeight: 1.4 }}>
-            {product.title}
-          </span>
+        {images.length > 0 ? (
+          <div
+            style={{
+              display: 'flex',
+              width: `${images.length * 100}%`,
+              height: '100%',
+              transform: `translateX(-${imgIndex * (100 / images.length)}%)`,
+              transition: 'transform 0.3s ease',
+            }}
+          >
+            {images.map((url, i) => (
+              <div
+                key={i}
+                style={{
+                  width: `${100 / images.length}%`,
+                  height: '100%',
+                  flexShrink: 0,
+                  backgroundImage: `url(${url})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                }}
+              />
+            ))}
+          </div>
+        ) : (
+          <div style={{ width: '100%', height: '100%', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px', boxSizing: 'border-box' }}>
+            <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: '11px', fontWeight: 600, textAlign: 'center', lineHeight: 1.4 }}>
+              {product.title}
+            </span>
+          </div>
         )}
+
+        {/* Prev / Next arrows — desktop hover */}
+        {images.length > 1 && imgHovered && (
+          <>
+            <button
+              onClick={prevImg}
+              style={{ position: 'absolute', left: '6px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.5)', border: 'none', color: '#fff', width: '26px', height: '26px', borderRadius: '50%', cursor: 'pointer', fontSize: '16px', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3 }}
+            >‹</button>
+            <button
+              onClick={nextImg}
+              style={{ position: 'absolute', right: '6px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.5)', border: 'none', color: '#fff', width: '26px', height: '26px', borderRadius: '50%', cursor: 'pointer', fontSize: '16px', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3 }}
+            >›</button>
+          </>
+        )}
+
+        {/* Dot indicators */}
+        {images.length > 1 && (
+          <div style={{ position: 'absolute', bottom: '6px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '5px', zIndex: 3 }}>
+            {images.map((_, i) => (
+              <div
+                key={i}
+                onClick={() => setImgIndex(i)}
+                style={{ width: '6px', height: '6px', borderRadius: '50%', background: i === imgIndex ? '#fff' : 'rgba(255,255,255,0.45)', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}
+              />
+            ))}
+          </div>
+        )}
+
         {!isSoldOut && salePrice && (
           <span
             style={{
               position: 'absolute',
-              bottom: '8px',
+              bottom: images.length > 1 ? '22px' : '8px',
               left: '8px',
               background: PINK,
               color: '#fff',
@@ -84,13 +158,14 @@ export default function ProductCard({
               fontWeight: 600,
               padding: '2px 10px',
               borderRadius: '40px',
+              zIndex: 4,
             }}
           >
             Sale
           </span>
         )}
         {isSoldOut && (
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 4 }}>
             <span style={{ background: '#111', color: '#fff', fontSize: '11px', fontWeight: 700, padding: '5px 14px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Sold Out</span>
           </div>
         )}

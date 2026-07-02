@@ -550,6 +550,7 @@ section {
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
   width: 100%;
+  align-items: start;
 }
 
 @media (min-width: 640px) {

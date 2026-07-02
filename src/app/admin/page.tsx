@@ -248,7 +248,7 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen py-8 px-4">
-      <div className="max-w-xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <div className="card card-padded animate-fade-in">
 
           {/* Header */}

@@ -8,7 +8,8 @@ interface Product {
   description?: string;
   price: number;
   original_price?: number;
-  image_url?: string;
+  image_url?: string; // for backward compatibility
+  image_urls?: string[];
   categories: string[];
   active: boolean;
   quantity: number;
@@ -25,8 +26,8 @@ export function AdminProductsTab() {
   const [price, setPrice] = useState('');
   const [originalPrice, setOriginalPrice] = useState('');
   const [categories, setCategories] = useState<string[]>([]);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [soldOut, setSoldOut] = useState(false);
   const [quantity, setQuantity] = useState('');
   const [error, setError] = useState('');
@@ -141,12 +142,12 @@ export function AdminProductsTab() {
       showError('Quantity must be at least 1.');
       return;
     }
-    if (!editingId && !imageFile) {
-      showError('Please upload a product image.');
+    if (!editingId && imageFiles.length === 0) {
+      showError('Please upload at least one product image.');
       return;
     }
-    if (editingId && !imageFile && !imagePreview) {
-      showError('Please upload a product image.');
+    if (editingId && imageFiles.length === 0 && imagePreviews.length === 0) {
+      showError('Please upload at least one product image.');
       return;
     }
 
@@ -159,11 +160,17 @@ export function AdminProductsTab() {
     fd.append('categories', JSON.stringify(categories));
     fd.append('active', String(!soldOut));
     fd.append('quantity', quantity);
-    if (imageFile) fd.append('image', imageFile);
+    
+    imageFiles.forEach(file => {
+      fd.append('images', file);
+    });
 
     try {
       const method = editingId ? 'PATCH' : 'POST';
-      if (editingId) fd.append('id', editingId);
+      if (editingId) {
+        fd.append('id', editingId);
+        fd.append('existingImageUrls', JSON.stringify(imagePreviews));
+      }
 
       const res = await fetch('/api/admin/products', { method, body: fd });
 
@@ -178,8 +185,8 @@ export function AdminProductsTab() {
       setPrice('');
       setOriginalPrice('');
       setCategories([]);
-      setImageFile(null);
-      setImagePreview(null);
+      setImageFiles([]);
+      setImagePreviews([]);
       setSoldOut(false);
       setQuantity('');
       setShowForm(false);
@@ -198,8 +205,12 @@ export function AdminProductsTab() {
     setPrice(String(product.price));
     setOriginalPrice(product.original_price ? String(product.original_price) : '');
     setCategories(product.categories);
-    setImageFile(null);
-    setImagePreview(product.image_url ?? null);
+    setImageFiles([]);
+    
+    // Handle both single and multiple images for backward compatibility
+    const existingImages = product.image_urls ?? (product.image_url ? [product.image_url] : []);
+    setImagePreviews(existingImages);
+
     setSoldOut(!product.active);
     setQuantity(String(product.quantity ?? 0));
     setError('');
@@ -304,8 +315,8 @@ export function AdminProductsTab() {
             setPrice('');
             setOriginalPrice('');
             setCategories([]);
-            setImageFile(null);
-            setImagePreview(null);
+            setImageFiles([]);
+            setImagePreviews([]);
             setSoldOut(false);
             setQuantity('');
             setError('');
@@ -387,17 +398,67 @@ export function AdminProductsTab() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-1">
-            <label className="text-xs text-gray-700">Product image: <span style={{ color: '#dc2626' }}>*</span></label>
-            {imagePreview && <img src={imagePreview} alt="Preview" className="w-20 h-20 object-cover rounded border border-gray-300" />}
+          <div className="flex flex-col gap-2">
+          <label className="text-xs text-gray-700">Product Images (up to 7) <span style={{ color: '#dc2626' }}>*</span></label>
+            <div className="grid grid-cols-4 gap-2">
+              {imagePreviews.map((preview, index) => (
+                <div key={index} className="relative">
+                  <img src={preview} alt={`Preview ${index + 1}`} className="w-full h-20 object-cover rounded border border-gray-300" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const removedPreview = imagePreviews[index];
+
+                      // Revoke blob URL to prevent memory leaks
+                      if (removedPreview.startsWith('blob:')) {
+                        URL.revokeObjectURL(removedPreview);
+                      }
+                      
+                      // Count how many previews before this one were also for new files
+                      let fileIndexToRemove = -1;
+                      if (removedPreview.startsWith('blob:')) {
+                        let newFileCounter = 0;
+                        for (let i = 0; i < index; i++) {
+                          if (imagePreviews[i].startsWith('blob:')) {
+                            newFileCounter++;
+                          }
+                        }
+                        fileIndexToRemove = newFileCounter;
+                      }
+                      
+                      const newImagePreviews = [...imagePreviews];
+                      newImagePreviews.splice(index, 1);
+                      setImagePreviews(newImagePreviews);
+                  
+                      if (fileIndexToRemove > -1) {
+                        const newImageFiles = [...imageFiles];
+                        newImageFiles.splice(fileIndexToRemove, 1);
+                        setImageFiles(newImageFiles);
+                      }
+                    }}
+                    className="absolute top-0 right-0 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                    aria-label="Remove image"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
             <input
               type="file"
               accept="image/*"
+              multiple
               onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  setImageFile(file);
-                  setImagePreview(URL.createObjectURL(file));
+                const files = e.target.files;
+                if (files) {
+                  const newFiles = Array.from(files);
+                  if (imageFiles.length + newFiles.length > 7) {
+                    showError('You can upload a maximum of 7 images.');
+                    return;
+                  }
+                  setImageFiles([...imageFiles, ...newFiles]);
+                  const newPreviews = newFiles.map(file => URL.createObjectURL(file));
+                  setImagePreviews([...imagePreviews, ...newPreviews]);
                 }
               }}
               className="border-2 border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-900 w-full"
@@ -420,36 +481,58 @@ export function AdminProductsTab() {
       ) : products.length === 0 ? (
         <p className="text-xs text-gray-500">No products yet.</p>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto rounded-lg border border-gray-200">
           <table className="w-full text-xs border-collapse">
             <thead>
-              <tr className="bg-gray-100 border border-gray-300">
+              <tr className="bg-gray-100">
+                <th className="px-3 py-2 text-left w-12">Img</th>
                 <th className="px-3 py-2 text-left">Title</th>
-                <th className="px-3 py-2 text-left">Price</th>
-                <th className="px-3 py-2 text-left">Qty</th>
+                <th className="px-3 py-2 text-right whitespace-nowrap">Price</th>
+                <th className="px-3 py-2 text-right w-12">Qty</th>
                 <th className="px-3 py-2 text-left">Categories</th>
-                <th className="px-3 py-2 text-left">Sold Out</th>
-                <th className="px-3 py-2 text-center">Actions</th>
+                <th className="px-3 py-2 text-center w-20">Status</th>
+                <th className="px-3 py-2 text-center w-24">Actions</th>
               </tr>
             </thead>
-            <tbody>
-              {products.map((product) => (
-                <tr key={product.id} className="border border-gray-300">
-                  <td className="px-3 py-2">{product.title}</td>
-                  <td className="px-3 py-2">₱{product.price.toFixed(2)}</td>
-                  <td className="px-3 py-2">{product.quantity ?? 0}</td>
-                  <td className="px-3 py-2">{product.categories.join(', ')}</td>
-                  <td className="px-3 py-2">{!product.active ? '✓' : '—'}</td>
-                  <td className="px-3 py-2 text-center">
-                    <button onClick={() => handleEdit(product)} className="text-blue-600 hover:text-blue-800 text-[10px] font-medium mr-3">
-                      Edit
-                    </button>
-                    <button onClick={() => handleDelete(product.id)} className="text-red-600 hover:text-red-800 text-[10px] font-medium">
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
+            <tbody className="divide-y divide-gray-100">
+              {products.map((product) => {
+                const thumb = product.image_urls?.[0] ?? product.image_url ?? null;
+                const isActive = product.active && product.quantity > 0;
+                return (
+                  <tr key={product.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-3 py-2">
+                      {thumb ? (
+                        <img src={thumb} alt="" className="w-10 h-10 object-cover rounded border border-gray-200 shrink-0" />
+                      ) : (
+                        <div className="w-10 h-10 bg-gray-100 rounded border border-gray-200 flex items-center justify-center text-gray-300 text-[10px]">No img</div>
+                      )}
+                    </td>
+                    <td className="px-3 py-2 font-medium text-gray-900 max-w-[220px]">{product.title}</td>
+                    <td className="px-3 py-2 text-right whitespace-nowrap text-gray-700">₱{product.price.toFixed(2)}</td>
+                    <td className="px-3 py-2 text-right text-gray-700">{product.quantity ?? 0}</td>
+                    <td className="px-3 py-2 text-gray-600 max-w-[180px]">
+                      <div className="flex flex-wrap gap-1">
+                        {product.categories.map((c) => (
+                          <span key={c} className="bg-gray-100 border border-gray-300 rounded-full px-2 py-0.5 text-[10px] text-gray-600 whitespace-nowrap">{c}</span>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="px-3 py-2 text-center">
+                      <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold ${isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
+                        {isActive ? 'Active' : 'Sold Out'}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2 text-center whitespace-nowrap">
+                      <button onClick={() => handleEdit(product)} className="text-blue-600 hover:text-blue-800 text-[10px] font-medium mr-3">
+                        Edit
+                      </button>
+                      <button onClick={() => handleDelete(product.id)} className="text-red-600 hover:text-red-800 text-[10px] font-medium">
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
