@@ -25,7 +25,7 @@ const dmSans = DM_Sans({
 
 export const metadata: Metadata = {
   title: "Arkive Market",
-  description: "Arkive provides fast and reliable online ticketing assistance for events across the Philippines and internationally.",
+  description: "Looking for a specific K-pop item or ordering 2 or more items? Send us a DM for assistance and possible discounts.",
 };
 
 export const viewport: Viewport = {
