@@ -2,6 +2,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   compress: true,
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '25mb',
+    },
+  },
   images: {
     // Auto-serve WebP/AVIF instead of the original format — major bandwidth saving
     formats: ["image/avif", "image/webp"],
