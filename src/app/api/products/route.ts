@@ -30,7 +30,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json(data ?? []);
+    return NextResponse.json(data ?? [], {
+      headers: {
+        'Cache-Control': 's-maxage=60, stale-while-revalidate=300',
+      },
+    });
   } catch (err) {
     console.error('Error fetching products:', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

@@ -21,7 +21,7 @@ export default function Home() {
                   fill
                   className="object-contain"
                   priority
-                  quality={100}
+                  quality={85}
                 />
               </div>
             </div>

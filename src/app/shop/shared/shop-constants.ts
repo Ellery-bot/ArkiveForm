@@ -11,18 +11,30 @@ export const NAV_LINKS = [
   { label: 'PHOTOCARDS', href: '/shop/photocards' },
 ] as const;
 
-/** Base product-type categories always pinned to the end of the nav. */
-export const BASE_CATEGORIES = ['preorder', 'onhand', 'lightsticks', 'photocards'];
-
-const PINNED_FIRST = ['preorder', 'onhand'];
-const PINNED_LAST  = ['lightsticks', 'photocards'];
+/** Base product-type categories that follow a fixed pinned order. */
+export const BASE_CATEGORIES = ['preorder', 'onhand', 'lightstick', 'lightsticks', 'album', 'albums', 'photocards'];
 
 /**
- * Sort order: preorder → onhand → custom (a–z) → lightsticks → photocards
+ * Pinned order: preorder → onhand → lightstick(s) → album(s) → artist cats (a–z) → photocards
+ * Handles both singular and plural slug variants stored in the DB.
+ */
+const PINNED_ORDER = ['preorder', 'onhand', 'lightstick', 'lightsticks', 'album', 'albums'];
+const PINNED_TAIL  = ['photocards'];
+
+/**
+ * Display label overrides — handles singular slugs and adds plural display names.
+ */
+export const CATEGORY_LABEL_OVERRIDES: Record<string, string> = {
+  lightstick: 'LIGHTSTICKS',
+  album: 'ALBUMS',
+};
+
+/**
+ * Sort order: preorder → onhand → lightstick(s) → album(s) → custom (a–z) → photocards
  */
 export function sortCategories(categories: string[]): string[] {
-  const first  = PINNED_FIRST.filter((c) => categories.includes(c));
-  const last   = PINNED_LAST.filter((c) => categories.includes(c));
-  const custom = categories.filter((c) => !BASE_CATEGORIES.includes(c)).sort();
-  return [...first, ...custom, ...last];
+  const pinned  = PINNED_ORDER.filter((c) => categories.includes(c));
+  const tail    = PINNED_TAIL.filter((c) => categories.includes(c));
+  const custom  = categories.filter((c) => !BASE_CATEGORIES.includes(c)).sort();
+  return [...pinned, ...custom, ...tail];
 }

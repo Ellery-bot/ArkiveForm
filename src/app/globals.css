@@ -19,7 +19,6 @@
 }
 
 body {
-  background: url('/background.png') center center / cover no-repeat fixed;
   background-color: #0a0a1a;
   color: var(--foreground);
   font-family: var(--font-pixel), 'Press Start 2P', monospace;
@@ -28,6 +27,18 @@ body {
   image-rendering: crisp-edges;
   min-height: 100vh;
   cursor: url('/cursor.png') 0 0, auto !important;
+}
+
+/* Fixed background via pseudo-element — avoids full-page repaints on scroll
+   that background-attachment:fixed causes on mobile (Safari/Android). */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: url('/background.png') center center / cover no-repeat;
+  z-index: -1;
+  pointer-events: none;
+  will-change: transform; /* promote to its own GPU layer */
 }
 
 a, button, [role="button"], select, input[type="submit"], input[type="button"], label[for], [tabindex]:not([tabindex="-1"]), .cursor-pointer {
@@ -209,6 +220,11 @@ select:focus-visible {
     opacity: 1;
     transform: translateX(0);
   }
+}
+
+@keyframes marquee {
+  0%   { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
 }
 
 @keyframes starBurst {
@@ -565,6 +581,21 @@ section {
   display: flex !important;
 }
 
+/* Product detail two-column layout */
+.product-detail-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+}
+
+@media (min-width: 768px) {
+  .product-detail-layout {
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: start;
+  }
+}
+
 /* Sidebar nav links: visible on mobile, hidden on desktop */
 @media (min-width: 990px) {
   .shop-menu-nav {
@@ -591,6 +622,15 @@ section {
 /* Hamburger: always visible */
 .shop-hamburger {
   display: flex !important;
+}
+
+/* Logo: centered on mobile */
+@media (max-width: 767px) {
+  .shop-logo-link {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
 }
 
 /* Admin form error override */

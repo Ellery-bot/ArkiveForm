@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useCart } from '@/lib/cart-context';
 import { PINK, FONT, BG_COLORS, sortCategories } from './shop-constants';
 import type { Product } from './shop-types';
@@ -19,18 +20,63 @@ interface Notification {
 interface ShopShellProps {
   /** Current category slug — used for active nav highlighting. Omit on the shop-all page. */
   category?: string;
-  /** Render function receives `onAddToCart` so product cards can trigger cart updates and notifications. */
-  children: (onAddToCart: (p: Product, qty: number) => void) => React.ReactNode;
+  /** When true, the footer is hidden (products are still loading). */
+  loading?: boolean;
+  /** Pass categories from the parent to skip the internal /api/categories fetch. */
+  initialCategories?: string[];
+  /** Render function receives `onAddToCart` and `searchQuery` so product cards can trigger cart updates and search filtering. */
+  children: (onAddToCart: (p: Product, qty: number) => void, searchQuery: string) => React.ReactNode;
 }
 
-export default function ShopShell({ category, children }: ShopShellProps) {
+export default function ShopShell({ category, loading = false, initialCategories, children }: ShopShellProps) {
   const { cartItems, addToCart, removeFromCart, updateQuantity, cartCount, cartTotal } = useCart();
   const [cartOpen, setCartOpen] = useState(false);
   const [removeConfirmId, setRemoveConfirmId] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [notification, setNotification] = useState<Notification | null>(null);
   const [checkingOut, setCheckingOut] = useState(false);
-  const [navCategories, setNavCategories] = useState<string[]>([]);
+  const [navCategories, setNavCategories] = useState<string[]>(initialCategories ?? []);
+  const [scrolled, setScrolled] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Draggable floating cart
+  const [floatPos, setFloatPos] = useState<{ right: number; top: number }>({ right: 24, top: 80 });
+  const dragState = useRef<{ dragging: boolean; startX: number; startY: number; startRight: number; startTop: number; moved: boolean }>(
+    { dragging: false, startX: 0, startY: 0, startRight: 24, startTop: 80, moved: false }
+  );
+  const lastWasDrag = useRef(false);
+
+  const onFloatPointerDown = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    dragState.current = { dragging: true, startX: e.clientX, startY: e.clientY, startRight: floatPos.right, startTop: floatPos.top, moved: false };
+  }, [floatPos]);
+
+  const onFloatPointerMove = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
+    if (!dragState.current.dragging) return;
+    const dx = e.clientX - dragState.current.startX;
+    const dy = e.clientY - dragState.current.startY;
+    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) dragState.current.moved = true;
+    const newRight = Math.max(8, dragState.current.startRight - dx);
+    const newTop = Math.max(8, dragState.current.startTop + dy);
+    setFloatPos({ right: newRight, top: newTop });
+  }, []);
+
+  const onFloatPointerUp = useCallback(() => {
+    lastWasDrag.current = dragState.current.moved;
+    dragState.current.dragging = false;
+    dragState.current.moved = false;
+  }, []);
+
+  const onFloatClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    if (!lastWasDrag.current) setCartOpen(true);
+  }, []);;
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 80);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   // Cursor-driven nav scroll
   const navListRef = useRef<HTMLUListElement>(null);
@@ -62,11 +108,12 @@ export default function ShopShell({ category, children }: ShopShellProps) {
   }, [tickNavScroll]);
 
   useEffect(() => {
+    if (initialCategories && initialCategories.length > 0) return; // already have data from parent
     fetch('/api/categories')
       .then((r) => r.json())
       .then((d) => setNavCategories(Array.isArray(d) ? sortCategories(d) : []))
       .catch(() => {});
-  }, []);
+  }, [initialCategories]);
 
   const handleAddToCart = useCallback((product: Product, qty: number) => {
     addToCart(
@@ -108,15 +155,17 @@ export default function ShopShell({ category, children }: ShopShellProps) {
   }, [cartItems]);
 
   return (
-    <div className="cursor-reset-zone" style={{ background: '#fff', color: '#121212', minHeight: '100vh', fontFamily: FONT, overflowX: 'hidden' }}>
+    <div className="cursor-reset-zone" style={{ background: '#fff', color: '#121212', minHeight: '100vh', fontFamily: FONT, overflowX: 'hidden', display: 'flex', flexDirection: 'column' }}>
       {/* Announcement banner */}
-      <div style={{ background: PINK, color: '#fff', textAlign: 'center', padding: '10px 16px', fontSize: '14px' }}>
-        Shipping fees are all estimated. For bulk orders and international shipping, please DM us!
+      <div style={{ background: PINK, color: '#fff', padding: '10px 0', fontSize: '14px', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+        <span style={{ display: 'inline-block', animation: 'marquee 18s linear infinite' }}>
+          Looking for a specific K-pop item or ordering 2 or more items? Send us a DM for assistance and possible discounts.
+        </span>
       </div>
 
       {/* Sticky header */}
       <header style={{ position: 'sticky', top: 0, zIndex: 100, background: '#fff', borderBottom: '1px solid #e5e5e5' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '8px 24px 8px 20px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '14px 24px 14px 20px', display: 'flex', alignItems: 'center', gap: '16px', position: 'relative' }}>
           <button
             onClick={() => setMenuOpen(true)}
             aria-label="Menu"
@@ -130,9 +179,17 @@ export default function ShopShell({ category, children }: ShopShellProps) {
 
           <Link
             href="/shop"
-            style={{ fontWeight: 700, fontSize: '20px', color: '#121212', textDecoration: 'none', flexShrink: 0, letterSpacing: '0.02em' }}
+            className="shop-logo-link"
+            style={{ textDecoration: 'none', flexShrink: 0 }}
           >
-            ARKIVE MARKET
+            <Image
+              src="/logo.png"
+              alt="Arkive Market"
+              width={120}
+              height={48}
+              style={{ objectFit: 'contain', borderRadius: '8px', display: 'block' }}
+              priority
+            />
           </Link>
 
           <nav
@@ -159,6 +216,7 @@ export default function ShopShell({ category, children }: ShopShellProps) {
                         letterSpacing: '0.05em',
                         fontWeight: isActive ? 700 : 500,
                         borderBottom: isActive ? `2px solid ${PINK}` : '2px solid transparent',
+                        whiteSpace: 'nowrap',
                       }}
                     >
                       {categoryToLabel(cat)}
@@ -203,15 +261,111 @@ export default function ShopShell({ category, children }: ShopShellProps) {
         </div>
       </header>
 
+      {/* Search bar strip */}
+      <div style={{ position: 'sticky', top: '77px', zIndex: 99, background: '#fff', borderBottom: '1px solid #e5e5e5', padding: '10px 20px' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <div style={{ position: 'relative', maxWidth: '480px', margin: '0 auto' }}>
+            <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', fontSize: '15px', color: '#aaa', pointerEvents: 'none' }}>🔍</span>
+            <input
+              type="search"
+              placeholder="Search products…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '8px 12px 8px 36px',
+                borderRadius: '20px',
+                border: `1.5px solid #e5e5e5`,
+                fontSize: '13px',
+                outline: 'none',
+                background: '#f9f9f9',
+                fontFamily: FONT,
+                boxSizing: 'border-box',
+                transition: 'border-color 0.2s',
+              }}
+              onFocus={(e) => (e.currentTarget.style.borderColor = PINK)}
+              onBlur={(e) => (e.currentTarget.style.borderColor = '#e5e5e5')}
+            />
+          </div>
+        </div>
+      </div>
+
       {/* Page-specific content via render prop */}
-      <main>{children(handleAddToCart)}</main>
+      <main style={{ flex: 1 }}>{children(handleAddToCart, searchQuery)}</main>
+
+      {/* Floating cart button */}
+      {scrolled && !cartOpen && (
+        <button
+          onPointerDown={onFloatPointerDown}
+          onPointerMove={onFloatPointerMove}
+          onPointerUp={onFloatPointerUp}
+          onClick={onFloatClick}
+          aria-label="Cart"
+          style={{
+            position: 'fixed',
+            top: `${floatPos.top}px`,
+            right: `${floatPos.right}px`,
+            zIndex: 250,
+            background: '#1a1a1a',
+            border: 'none',
+            borderRadius: '50%',
+            width: '48px',
+            height: '48px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 14px rgba(0,0,0,0.30)',
+            cursor: 'grab',
+            touchAction: 'none',
+            userSelect: 'none',
+          }}
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="9" cy="21" r="1" />
+            <circle cx="20" cy="21" r="1" />
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+          </svg>
+          {cartCount > 0 && (
+            <span
+              style={{
+                position: 'absolute',
+                top: '-4px',
+                right: '-4px',
+                background: '#e53e3e',
+                color: '#fff',
+                borderRadius: '50%',
+                minWidth: '20px',
+                height: '20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '11px',
+                fontWeight: 700,
+                padding: '0 4px',
+                lineHeight: 1,
+                boxSizing: 'border-box',
+              }}
+            >
+              {cartCount}
+            </span>
+          )}
+        </button>
+      )}
 
       {/* Footer */}
-      <footer style={{ background: '#fff', borderTop: `3px solid ${PINK}`, padding: '48px 20px 32px' }}>
+      {!loading && <footer style={{ background: '#fff', borderTop: `3px solid ${PINK}`, padding: '48px 20px 32px' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '40px', marginBottom: '40px' }}>
           {/* Brand */}
           <div style={{ minWidth: 0, overflowWrap: 'break-word' }}>
-            <div style={{ fontWeight: 800, fontSize: '20px', color: '#121212', letterSpacing: '0.04em', marginBottom: '16px' }}>ARKIVE MARKET</div>
+            <div style={{ marginBottom: '16px' }}>
+              <Image
+                src="/logo.png"
+                alt="Arkive Market"
+                width={140}
+                height={56}
+                style={{ objectFit: 'contain', borderRadius: '8px', display: 'block' }}
+              />
+            </div>
             <p style={{ fontSize: '13px', color: '#555', margin: '0 0 8px' }}>
               <span style={{ fontWeight: 700, color: '#121212' }}>Email: </span>
               <a href="mailto:arkivemarketshop@gmail.com" style={{ color: '#555', textDecoration: 'none' }}>arkivemarketshop@gmail.com</a>
@@ -261,7 +415,7 @@ export default function ShopShell({ category, children }: ShopShellProps) {
         <div style={{ maxWidth: '1200px', margin: '0 auto', paddingTop: '20px', borderTop: '1px solid #e5e5e5', fontSize: '12px', color: '#888', textAlign: 'center' }}>
           &copy; 2026 Arkive Market. All rights reserved.
         </div>
-      </footer>
+      </footer>}
 
       {/* Added-to-cart notification */}
       {notification && (

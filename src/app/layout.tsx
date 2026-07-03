@@ -18,7 +18,7 @@ const cormorantGaramond = Cormorant_Garamond({
 });
 
 const dmSans = DM_Sans({
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "600", "700"],
   variable: "--font-dm-sans",
   subsets: ["latin"],
 });

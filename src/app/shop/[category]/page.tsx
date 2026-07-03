@@ -25,33 +25,40 @@ export default function CategoryPage() {
   }, [category]);
 
   return (
-    <ShopShell category={category}>
-      {(onAddToCart) => (
-        <section style={{ padding: '40px 0' }}>
-          <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
-            <h2 style={{ fontWeight: 700, fontSize: '28px', marginBottom: '24px', color: '#121212', letterSpacing: '0.02em' }}>
-              {categoryToLabel(category)}
-            </h2>
-            {loading ? (
-              <div style={{ padding: '40px 0', textAlign: 'center' }}>Loading products...</div>
-            ) : products.length === 0 ? (
-              <div style={{ padding: '60px 0', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-                <div style={{ fontSize: '48px', lineHeight: 1 }}>🛍️</div>
-                <p style={{ fontSize: '18px', fontWeight: 700, color: '#121212', margin: 0 }}>No items yet</p>
-                <p style={{ fontSize: '13px', color: '#888', margin: 0, maxWidth: '260px', lineHeight: 1.6 }}>
-                  Check back soon — new collections are on their way!
-                </p>
-              </div>
-            ) : (
-              <div className="shop-product-grid">
-                {products.map((p, i) => (
-                  <ProductCard key={p.id} product={p} index={i} onAddToCart={onAddToCart} />
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
-      )}
+    <ShopShell category={category} loading={loading}>
+      {(onAddToCart, searchQuery) => {
+        const q = searchQuery.trim().toLowerCase();
+        const filtered = q ? products.filter((p) => p.title.toLowerCase().includes(q)) : products;
+
+        return (
+          <section style={{ padding: '40px 0' }}>
+            <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
+              <h2 style={{ fontWeight: 700, fontSize: '28px', marginBottom: '24px', color: '#121212', letterSpacing: '0.02em' }}>
+                {categoryToLabel(category)}
+              </h2>
+              {loading ? (
+                <div style={{ padding: '40px 0', textAlign: 'center' }}>Loading products...</div>
+              ) : filtered.length === 0 ? (
+                <div style={{ padding: '60px 0', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ fontSize: '48px', lineHeight: 1 }}>🛍️</div>
+                  <p style={{ fontSize: '18px', fontWeight: 700, color: '#121212', margin: 0 }}>
+                    {q ? `No results for "${searchQuery}"` : 'No items yet'}
+                  </p>
+                  <p style={{ fontSize: '13px', color: '#888', margin: 0, maxWidth: '260px', lineHeight: 1.6 }}>
+                    {q ? 'Try a different search term.' : 'Check back soon — new collections are on their way!'}
+                  </p>
+                </div>
+              ) : (
+                <div className="shop-product-grid">
+                  {filtered.map((p, i) => (
+                    <ProductCard key={p.id} product={p} index={i} onAddToCart={onAddToCart} />
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+        );
+      }}
     </ShopShell>
   );
 }

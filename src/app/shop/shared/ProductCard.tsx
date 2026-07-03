@@ -2,6 +2,8 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import Image from 'next/image';
 import { PINK, BG_COLORS } from './shop-constants';
 import type { Product } from './shop-types';
 
@@ -39,6 +41,8 @@ export default function ProductCard({
   const [imgIndex, setImgIndex] = useState(0);
   const [imgHovered, setImgHovered] = useState(false);
   const touchStartX = useRef<number | null>(null);
+  // true when the last touch moved enough to count as a swipe (not a tap)
+  const didSwipe = useRef(false);
 
   const prevImg = useCallback(
     (e: React.MouseEvent) => { e.stopPropagation(); setImgIndex(i => (i - 1 + images.length) % images.length); },
@@ -48,11 +52,17 @@ export default function ProductCard({
     (e: React.MouseEvent) => { e.stopPropagation(); setImgIndex(i => (i + 1) % images.length); },
     [images.length],
   );
-  const handleTouchStart = (e: React.TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    didSwipe.current = false;
+  };
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (touchStartX.current === null) return;
     const diff = touchStartX.current - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 30) diff > 0 ? setImgIndex(i => (i + 1) % images.length) : setImgIndex(i => (i - 1 + images.length) % images.length);
+    if (Math.abs(diff) > 30) {
+      didSwipe.current = true;
+      diff > 0 ? setImgIndex(i => (i + 1) % images.length) : setImgIndex(i => (i - 1 + images.length) % images.length);
+    }
     touchStartX.current = null;
   };
 
@@ -77,11 +87,14 @@ export default function ProductCard({
     }
   }, [isSoldOut, checkingOut, product, qty, router]);
 
+  const detailHref = `/shop/product/${product.id}`;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* Image / color block */}
+      {/* Image / color block — click navigates to product detail (unless the user swiped) */}
       <div
-        style={{ position: 'relative', aspectRatio: '1', overflow: 'hidden', background: images.length === 0 ? bg : '#f0f0f0', flexShrink: 0 }}
+        style={{ position: 'relative', aspectRatio: '1', overflow: 'hidden', background: images.length === 0 ? bg : '#f0f0f0', flexShrink: 0, cursor: 'pointer' }}
+        onClick={() => { if (!didSwipe.current) router.push(detailHref); }}
         onMouseEnter={() => setImgHovered(true)}
         onMouseLeave={() => setImgHovered(false)}
         onTouchStart={handleTouchStart}
@@ -104,11 +117,18 @@ export default function ProductCard({
                   width: `${100 / images.length}%`,
                   height: '100%',
                   flexShrink: 0,
-                  backgroundImage: `url(${url})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
+                  position: 'relative',
                 }}
-              />
+              >
+                <Image
+                  src={url}
+                  alt={product.title}
+                  fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px"
+                  style={{ objectFit: 'cover' }}
+                  loading="lazy"
+                />
+              </div>
             ))}
           </div>
         ) : (
@@ -174,7 +194,9 @@ export default function ProductCard({
       {/* Product info */}
       <div style={{ paddingTop: '8px', display: 'flex', flexDirection: 'column', flex: 1 }}>
         <h3 style={{ fontSize: '13px', fontWeight: 400, margin: '0 0 6px', lineHeight: 1.4, color: '#121212', minHeight: '7em' }}>
-          {product.title}
+          <Link href={detailHref} style={{ color: 'inherit', textDecoration: 'none' }}>
+            {product.title}
+          </Link>
         </h3>
         <div style={{ marginBottom: '10px', minHeight: '56px' }}>
           {salePrice && (
