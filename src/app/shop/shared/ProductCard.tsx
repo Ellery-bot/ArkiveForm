@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -40,6 +40,15 @@ export default function ProductCard({
 
   const [imgIndex, setImgIndex] = useState(0);
   const [imgHovered, setImgHovered] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
   const touchStartX = useRef<number | null>(null);
   // true when the last touch moved enough to count as a swipe (not a tap)
   const didSwipe = useRef(false);
@@ -193,22 +202,22 @@ export default function ProductCard({
 
       {/* Product info */}
       <div style={{ paddingTop: '8px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-        <h3 style={{ fontSize: '13px', fontWeight: 400, margin: '0 0 6px', lineHeight: 1.4, color: '#121212', minHeight: '7em' }}>
+        <h3 style={{ fontSize: '13px', fontWeight: 400, margin: '0 0 6px', lineHeight: 1.4, color: '#121212', minHeight: isMobile ? '11em' : '7em' }}>
           <Link href={detailHref} style={{ color: 'inherit', textDecoration: 'none' }}>
             {product.title}
           </Link>
         </h3>
-        <div style={{ marginBottom: '10px', minHeight: '56px' }}>
-          {salePrice && (
-            <s style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '2px' }}>
-              ₱{product.original_price!.toFixed(2)}
-            </s>
-          )}
+        <div style={{ marginBottom: '10px' }}>
+          {/* Always rendered — invisible when no sale — keeps height consistent across cards */}
+          <s style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '2px', visibility: salePrice ? 'visible' : 'hidden' }}>
+            ₱{salePrice ? product.original_price!.toFixed(2) : '0.00'}
+          </s>
           <span style={{ fontSize: '13px', fontWeight: 600, color: salePrice ? PINK : '#121212' }}>
             ₱{product.price.toFixed(2)}
           </span>
-          <span style={{ fontSize: '11px', color: product.quantity <= 5 ? '#dc2626' : '#888', display: 'block', marginTop: '4px' }}>
-            {!isSoldOut ? `${product.quantity} left in stock` : ''}
+          {/* Non-breaking space keeps the line height on sold-out cards */}
+          <span style={{ fontSize: '11px', color: product.quantity <= 5 ? '#dc2626' : '#888', display: 'block', marginTop: '4px', minHeight: '2.8em', lineHeight: 1.4 }}>
+            {!isSoldOut ? `${product.quantity} left in stock` : '\u00A0'}
           </span>
         </div>
 

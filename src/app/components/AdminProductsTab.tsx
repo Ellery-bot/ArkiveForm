@@ -1,6 +1,28 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  MouseSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+// Categories that should appear first in the carousel, in this exact order.
+// Any category not listed here is appended after in whatever order the API returns it.
+const CATEGORY_ORDER = ['preorder', 'onhand', 'lightsticks', 'album', 'bts', 'blackpink'];
 
 interface Product {
   id: string;
@@ -13,6 +35,76 @@ interface Product {
   categories: string[];
   active: boolean;
   quantity: number;
+}
+
+function SortableProductRow({
+  product,
+  onEdit,
+  onDelete,
+}: {
+  product: Product;
+  onEdit: (p: Product) => void;
+  onDelete: (id: string) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: product.id,
+  });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+    background: isDragging ? '#eff6ff' : undefined,
+    position: 'relative',
+    zIndex: isDragging ? 10 : undefined,
+  };
+  const thumb = product.image_urls?.[0] ?? product.image_url ?? null;
+  const isActive = product.active && product.quantity > 0;
+  return (
+    <tr ref={setNodeRef} style={style} className="hover:bg-gray-50 transition-colors">
+      <td className="px-2 py-2 text-center">
+        <button
+          {...attributes}
+          {...listeners}
+          style={{ touchAction: 'none' }}
+          className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 select-none"
+          title="Drag to reorder"
+          aria-label="Drag to reorder"
+        >
+          &#8942;&#8942;
+        </button>
+      </td>
+      <td className="px-3 py-2">
+        {thumb ? (
+          <img src={thumb} alt="" className="w-10 h-10 object-cover rounded border border-gray-200 shrink-0" />
+        ) : (
+          <div className="w-10 h-10 bg-gray-100 rounded border border-gray-200 flex items-center justify-center text-gray-300 text-[10px]">No img</div>
+        )}
+      </td>
+      <td className="px-3 py-2 font-medium text-gray-900 max-w-[220px]">{product.title}</td>
+      <td className="px-3 py-2 text-right whitespace-nowrap text-gray-700">₱{product.price.toFixed(2)}</td>
+      <td className="px-3 py-2 text-right text-gray-700">{product.quantity ?? 0}</td>
+      <td className="px-3 py-2 text-gray-600 max-w-[180px]">
+        <div className="flex flex-wrap gap-1">
+          {product.categories.map((c) => (
+            <span key={c} className="bg-gray-100 border border-gray-300 rounded-full px-2 py-0.5 text-[10px] text-gray-600 whitespace-nowrap">{c}</span>
+          ))}
+        </div>
+      </td>
+      <td className="px-3 py-2 text-center">
+        <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold ${isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
+          {isActive ? 'Active' : 'Sold Out'}
+        </span>
+      </td>
+      <td className="px-3 py-2 text-center whitespace-nowrap">
+        <button onClick={() => onEdit(product)} className="text-blue-600 hover:text-blue-800 text-[10px] font-medium mr-3">
+          Edit
+        </button>
+        <button onClick={() => onDelete(product.id)} className="text-red-600 hover:text-red-800 text-[10px] font-medium">
+          Delete
+        </button>
+      </td>
+    </tr>
+  );
 }
 
 export function AdminProductsTab() {
@@ -32,7 +124,18 @@ export function AdminProductsTab() {
   const [quantity, setQuantity] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [orderDirty, setOrderDirty] = useState(false);
+  const [orderSaving, setOrderSaving] = useState(false);
+  const [activeCatIndex, setActiveCatIndex] = useState(0);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const sensors = useSensors(
+    // Mouse only — requires 8 px movement so clicks on Edit/Delete still fire
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
+    // Touch only — hold for 200 ms to start drag; keeps normal scroll working
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
 
   // Category management
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
@@ -69,6 +172,7 @@ export function AdminProductsTab() {
       }
       const data = await res.json();
       setProducts(Array.isArray(data) ? data : []);
+      setOrderDirty(false);
     } catch (e) {
       console.error('Failed to fetch products:', e);
     } finally {
@@ -169,7 +273,10 @@ export function AdminProductsTab() {
       const method = editingId ? 'PATCH' : 'POST';
       if (editingId) {
         fd.append('id', editingId);
-        fd.append('existingImageUrls', JSON.stringify(imagePreviews));
+        // Only send real Supabase URLs — blob: URLs are local previews for newly selected
+        // files and must never be persisted to the database.
+        const persistedUrls = imagePreviews.filter((url) => !url.startsWith('blob:'));
+        fd.append('existingImageUrls', JSON.stringify(persistedUrls));
       }
 
       const res = await fetch('/api/admin/products', { method, body: fd });
@@ -231,6 +338,80 @@ export function AdminProductsTab() {
       alert('Delete failed');
     }
   };
+
+  const handleCategoryDragEnd = (event: DragEndEvent, category: string) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    setProducts((allProducts) => {
+      // Collect the global-array indices for products belonging to this category,
+      // preserving their current relative order (which reflects sort_order).
+      const catIndices: number[] = [];
+      const catProducts: Product[] = [];
+      allProducts.forEach((p, i) => {
+        if (p.categories.includes(category)) {
+          catIndices.push(i);
+          catProducts.push(p);
+        }
+      });
+
+      const oldIdx = catProducts.findIndex((p) => p.id === active.id);
+      const newIdx = catProducts.findIndex((p) => p.id === over.id);
+      if (oldIdx === -1 || newIdx === -1) return allProducts;
+
+      // Reorder the category subset, then stitch it back into the global array.
+      const reordered = arrayMove(catProducts, oldIdx, newIdx);
+      const next = [...allProducts];
+      catIndices.forEach((globalIdx, i) => {
+        next[globalIdx] = reordered[i];
+      });
+      return next;
+    });
+    setOrderDirty(true);
+  };
+
+  const handleSaveOrder = async () => {
+    setOrderSaving(true);
+    try {
+      const updates = products.map((p, i) => ({ id: p.id, sort_order: i + 1 }));
+      const res = await fetch('/api/admin/products/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ updates }),
+      });
+      if (!res.ok) {
+        showError('Failed to save order.');
+      } else {
+        setOrderDirty(false);
+      }
+    } catch {
+      showError('Failed to save order.');
+    } finally {
+      setOrderSaving(false);
+    }
+  };
+
+  // Carousel: build the ordered list of navigable category sections
+  const activeCats = availableCategories.filter((cat) =>
+    products.some((p) => p.categories.includes(cat)),
+  );
+  const navigableSections = [
+    // Priority categories first, in the defined order, skipping any not present
+    ...CATEGORY_ORDER.filter((cat) => activeCats.includes(cat)),
+    // Remaining categories (not in the priority list) in their original API order
+    ...activeCats.filter((cat) => !CATEGORY_ORDER.includes(cat)),
+    // Uncategorized products last
+    ...(products.some((p) => !p.categories || p.categories.length === 0)
+      ? ['__uncategorized__']
+      : []),
+  ];
+  const safeCatIndex = Math.min(activeCatIndex, Math.max(0, navigableSections.length - 1));
+  const currentSection = navigableSections[safeCatIndex] ?? '';
+  const isCurrentUncategorized = currentSection === '__uncategorized__';
+  const currentCatLabel = isCurrentUncategorized ? 'Uncategorized' : currentSection;
+  const currentCatProducts = isCurrentUncategorized
+    ? products.filter((p) => !p.categories || p.categories.length === 0)
+    : products.filter((p) => p.categories.includes(currentSection));
 
   return (
     <>
@@ -307,24 +488,44 @@ export function AdminProductsTab() {
       <div className="mb-8">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-sm font-bold text-gray-900">Manage Products</h2>
-        <button
-          onClick={() => {
-            setShowForm(!showForm);
-            setEditingId(null);
-            setTitle('');
-            setPrice('');
-            setOriginalPrice('');
-            setCategories([]);
-            setImageFiles([]);
-            setImagePreviews([]);
-            setSoldOut(false);
-            setQuantity('');
-            setError('');
-          }}
-          className="btn-secondary text-xs"
-        >
-          {showForm ? 'Cancel' : 'Add Product'}
-        </button>
+        <div className="flex items-center gap-2">
+          {orderDirty && !showForm && (
+            <>
+              <button
+                onClick={handleSaveOrder}
+                disabled={orderSaving}
+                className="text-[11px] font-semibold px-2.5 py-1 rounded border border-gray-800 bg-gray-900 text-white hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {orderSaving ? 'Saving…' : 'Save Order'}
+              </button>
+              <button
+                onClick={() => { fetchProducts(); }}
+                disabled={orderSaving}
+                className="text-[11px] font-semibold px-2.5 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Cancel
+              </button>
+            </>
+          )}
+          <button
+            onClick={() => {
+              setShowForm(!showForm);
+              setEditingId(null);
+              setTitle('');
+              setPrice('');
+              setOriginalPrice('');
+              setCategories([]);
+              setImageFiles([]);
+              setImagePreviews([]);
+              setSoldOut(false);
+              setQuantity('');
+              setError('');
+            }}
+            className="btn-secondary text-xs"
+          >
+            {showForm ? 'Cancel' : 'Add Product'}
+          </button>
+        </div>
       </div>
 
       {showForm && (
@@ -481,60 +682,137 @@ export function AdminProductsTab() {
       ) : products.length === 0 ? (
         <p className="text-xs text-gray-500">No products yet.</p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-gray-200">
-          <table className="w-full text-xs border-collapse">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="px-3 py-2 text-left w-12">Img</th>
-                <th className="px-3 py-2 text-left">Title</th>
-                <th className="px-3 py-2 text-right whitespace-nowrap">Price</th>
-                <th className="px-3 py-2 text-right w-12">Qty</th>
-                <th className="px-3 py-2 text-left">Categories</th>
-                <th className="px-3 py-2 text-center w-20">Status</th>
-                <th className="px-3 py-2 text-center w-24">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {products.map((product) => {
-                const thumb = product.image_urls?.[0] ?? product.image_url ?? null;
-                const isActive = product.active && product.quantity > 0;
-                return (
-                  <tr key={product.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-3 py-2">
-                      {thumb ? (
-                        <img src={thumb} alt="" className="w-10 h-10 object-cover rounded border border-gray-200 shrink-0" />
-                      ) : (
-                        <div className="w-10 h-10 bg-gray-100 rounded border border-gray-200 flex items-center justify-center text-gray-300 text-[10px]">No img</div>
-                      )}
-                    </td>
-                    <td className="px-3 py-2 font-medium text-gray-900 max-w-[220px]">{product.title}</td>
-                    <td className="px-3 py-2 text-right whitespace-nowrap text-gray-700">₱{product.price.toFixed(2)}</td>
-                    <td className="px-3 py-2 text-right text-gray-700">{product.quantity ?? 0}</td>
-                    <td className="px-3 py-2 text-gray-600 max-w-[180px]">
-                      <div className="flex flex-wrap gap-1">
-                        {product.categories.map((c) => (
-                          <span key={c} className="bg-gray-100 border border-gray-300 rounded-full px-2 py-0.5 text-[10px] text-gray-600 whitespace-nowrap">{c}</span>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="px-3 py-2 text-center">
-                      <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold ${isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
-                        {isActive ? 'Active' : 'Sold Out'}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2 text-center whitespace-nowrap">
-                      <button onClick={() => handleEdit(product)} className="text-blue-600 hover:text-blue-800 text-[10px] font-medium mr-3">
-                        Edit
-                      </button>
-                      <button onClick={() => handleDelete(product.id)} className="text-red-600 hover:text-red-800 text-[10px] font-medium">
-                        Delete
-                      </button>
-                    </td>
+        <div>
+          {/* Prev / Next category navigation */}
+          <div className="flex items-center gap-3 mb-4">
+            <button
+              onClick={() => setActiveCatIndex((i) => Math.max(0, i - 1))}
+              disabled={safeCatIndex === 0}
+              className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed text-lg leading-none flex-shrink-0"
+              aria-label="Previous category"
+            >
+              &#8249;
+            </button>
+            <div className="flex-1 text-center">
+              <div>
+                <span className="text-[11px] font-bold uppercase tracking-widest text-gray-700">
+                  {currentCatLabel}
+                </span>
+                <span className="ml-2 text-[10px] text-gray-400">
+                  {currentCatProducts.length} {currentCatProducts.length === 1 ? 'product' : 'products'}
+                </span>
+              </div>
+              {navigableSections.length > 1 && (
+                <div className="flex justify-center gap-1.5 mt-1.5">
+                  {navigableSections.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setActiveCatIndex(i)}
+                      className={`w-1.5 h-1.5 rounded-full transition-colors ${
+                        i === safeCatIndex ? 'bg-gray-700' : 'bg-gray-300 hover:bg-gray-400'
+                      }`}
+                      aria-label={`Go to category ${i + 1}`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+            <button
+              onClick={() => setActiveCatIndex((i) => Math.min(navigableSections.length - 1, i + 1))}
+              disabled={safeCatIndex === navigableSections.length - 1}
+              className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed text-lg leading-none flex-shrink-0"
+              aria-label="Next category"
+            >
+              &#8250;
+            </button>
+          </div>
+
+          {/* Current category's product table */}
+          {!isCurrentUncategorized ? (
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={(e) => handleCategoryDragEnd(e, currentSection)}
+            >
+              <SortableContext
+                items={currentCatProducts.map((p) => p.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="overflow-x-auto rounded-lg border border-gray-200">
+                  <table className="w-full text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-gray-100">
+                        <th className="px-2 py-2 w-8"></th>
+                        <th className="px-3 py-2 text-left w-12">Img</th>
+                        <th className="px-3 py-2 text-left">Title</th>
+                        <th className="px-3 py-2 text-right whitespace-nowrap">Price</th>
+                        <th className="px-3 py-2 text-right w-12">Qty</th>
+                        <th className="px-3 py-2 text-left">Categories</th>
+                        <th className="px-3 py-2 text-center w-20">Status</th>
+                        <th className="px-3 py-2 text-center w-24">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {currentCatProducts.map((product) => (
+                        <SortableProductRow
+                          key={`${currentSection}-${product.id}`}
+                          product={product}
+                          onEdit={handleEdit}
+                          onDelete={handleDelete}
+                        />
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </SortableContext>
+            </DndContext>
+          ) : (
+            <div className="overflow-x-auto rounded-lg border border-gray-200">
+              <table className="w-full text-xs border-collapse">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="px-3 py-2 text-left w-12">Img</th>
+                    <th className="px-3 py-2 text-left">Title</th>
+                    <th className="px-3 py-2 text-right whitespace-nowrap">Price</th>
+                    <th className="px-3 py-2 text-right w-12">Qty</th>
+                    <th className="px-3 py-2 text-center w-20">Status</th>
+                    <th className="px-3 py-2 text-center w-24">Actions</th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {currentCatProducts.map((product) => {
+                    const thumb = product.image_urls?.[0] ?? product.image_url ?? null;
+                    const isActive = product.active && product.quantity > 0;
+                    return (
+                      <tr key={product.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-3 py-2">
+                          {thumb ? (
+                            <img src={thumb} alt="" className="w-10 h-10 object-cover rounded border border-gray-200 shrink-0" />
+                          ) : (
+                            <div className="w-10 h-10 bg-gray-100 rounded border border-gray-200 flex items-center justify-center text-gray-300 text-[10px]">No img</div>
+                          )}
+                        </td>
+                        <td className="px-3 py-2 font-medium text-gray-900 max-w-[220px]">{product.title}</td>
+                        <td className="px-3 py-2 text-right whitespace-nowrap text-gray-700">₱{product.price.toFixed(2)}</td>
+                        <td className="px-3 py-2 text-right text-gray-700">{product.quantity ?? 0}</td>
+                        <td className="px-3 py-2 text-center">
+                          <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                            isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'
+                          }`}>
+                            {isActive ? 'Active' : 'Sold Out'}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 text-center whitespace-nowrap">
+                          <button onClick={() => handleEdit(product)} className="text-blue-600 hover:text-blue-800 text-[10px] font-medium mr-3">Edit</button>
+                          <button onClick={() => handleDelete(product.id)} className="text-red-600 hover:text-red-800 text-[10px] font-medium">Delete</button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       ))}
       </div>

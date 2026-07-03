@@ -14,6 +14,7 @@ export default function ProductDetailPage() {
   const [notFound, setNotFound] = useState(false);
 
   const [activeImg, setActiveImg] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const [qty, setQty] = useState(1);
   const [checkingOut, setCheckingOut] = useState(false);
   const [added, setAdded] = useState(false);
@@ -22,12 +23,23 @@ export default function ProductDetailPage() {
   // Touch swipe for image gallery
   const touchStartX = useRef<number | null>(null);
 
+  // Lightbox zoom & pan
+  const [lbZoom, setLbZoom] = useState(1);
+  const [lbPan, setLbPan] = useState({ x: 0, y: 0 });
+  const [lbDragging, setLbDragging] = useState(false);
+  const lbDragRef = useRef({ active: false, startX: 0, startY: 0, panX: 0, panY: 0, moved: false });
+  const lbPinchRef = useRef({ active: false, startDist: 0, startZoom: 1 });
+
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
   }, []);
+
+  // Reset zoom when switching images or closing lightbox
+  useEffect(() => { setLbZoom(1); setLbPan({ x: 0, y: 0 }); }, [activeImg]);
+  useEffect(() => { if (!lightboxOpen) { setLbZoom(1); setLbPan({ x: 0, y: 0 }); } }, [lightboxOpen]);
 
   useEffect(() => {
     fetch(`/api/products/${id}`)
@@ -111,7 +123,8 @@ export default function ProductDetailPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {/* Main image */}
                 <div
-                  style={{ position: 'relative', aspectRatio: '1', overflow: 'hidden', background: images.length === 0 ? PINK : '#f5f5f5', borderRadius: '4px', maxHeight: isMobile ? '260px' : 'none' }}
+                  style={{ position: 'relative', aspectRatio: '1', overflow: 'hidden', background: images.length === 0 ? PINK : '#f5f5f5', borderRadius: '4px', maxHeight: isMobile ? '260px' : 'none', cursor: images.length > 0 ? 'zoom-in' : 'default' }}
+                  onClick={() => { if (images.length > 0) setLightboxOpen(true); }}
                   onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
                   onTouchEnd={(e) => {
                     if (touchStartX.current === null) return;
@@ -158,13 +171,13 @@ export default function ProductDetailPage() {
                   {images.length > 1 && (
                     <>
                       <button
-                        onClick={() => setActiveImg((i) => (i - 1 + images.length) % images.length)}
+                        onClick={(e) => { e.stopPropagation(); setActiveImg((i) => (i - 1 + images.length) % images.length); }}
                         style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.45)', border: 'none', color: '#fff', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3 }}
                       >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
                       </button>
                       <button
-                        onClick={() => setActiveImg((i) => (i + 1) % images.length)}
+                        onClick={(e) => { e.stopPropagation(); setActiveImg((i) => (i + 1) % images.length); }}
                         style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.45)', border: 'none', color: '#fff', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3 }}
                       >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
@@ -211,6 +224,146 @@ export default function ProductDetailPage() {
                   </div>
                 )}
               </div>
+
+              {/* ── Lightbox ── */}
+              {lightboxOpen && (
+                <div
+                  onClick={() => { if (lbZoom === 1) setLightboxOpen(false); }}
+                  style={{
+                    position: 'fixed', inset: 0, zIndex: 1000,
+                    background: 'rgba(0,0,0,0.92)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}
+                >
+                  {/* Close button */}
+                  <button
+                    onClick={() => setLightboxOpen(false)}
+                    style={{ position: 'absolute', top: '16px', right: '20px', background: 'none', border: 'none', color: '#fff', fontSize: '28px', cursor: 'pointer', lineHeight: 1, zIndex: 4 }}
+                    aria-label="Close"
+                  >
+                    ×
+                  </button>
+
+                  {/* Image — click/tap to zoom in · drag to pan · pinch on mobile */}
+                  <img
+                    src={images[activeImg]}
+                    alt={product.title}
+                    draggable={false}
+                    onClick={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      lbDragRef.current = { active: true, startX: e.clientX, startY: e.clientY, panX: lbPan.x, panY: lbPan.y, moved: false };
+                      setLbDragging(true);
+                    }}
+                    onMouseMove={(e) => {
+                      if (!lbDragRef.current.active) return;
+                      const dx = e.clientX - lbDragRef.current.startX;
+                      const dy = e.clientY - lbDragRef.current.startY;
+                      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) lbDragRef.current.moved = true;
+                      if (lbZoom > 1) setLbPan({ x: lbDragRef.current.panX + dx, y: lbDragRef.current.panY + dy });
+                    }}
+                    onMouseUp={() => {
+                      const moved = lbDragRef.current.moved;
+                      lbDragRef.current.active = false;
+                      setLbDragging(false);
+                      if (!moved) {
+                        if (lbZoom > 1) { setLbZoom(1); setLbPan({ x: 0, y: 0 }); }
+                        else setLbZoom(2.5);
+                      }
+                    }}
+                    onMouseLeave={() => { lbDragRef.current.active = false; setLbDragging(false); }}
+                    onTouchStart={(e) => {
+                      if (e.touches.length === 2) {
+                        const dist = Math.hypot(e.touches[1].clientX - e.touches[0].clientX, e.touches[1].clientY - e.touches[0].clientY);
+                        lbPinchRef.current = { active: true, startDist: dist, startZoom: lbZoom };
+                        lbDragRef.current.active = false;
+                      } else if (e.touches.length === 1) {
+                        lbDragRef.current = { active: true, startX: e.touches[0].clientX, startY: e.touches[0].clientY, panX: lbPan.x, panY: lbPan.y, moved: false };
+                      }
+                    }}
+                    onTouchMove={(e) => {
+                      if (e.touches.length === 2 && lbPinchRef.current.active) {
+                        const dist = Math.hypot(e.touches[1].clientX - e.touches[0].clientX, e.touches[1].clientY - e.touches[0].clientY);
+                        const newZoom = Math.min(4, Math.max(1, lbPinchRef.current.startZoom * (dist / lbPinchRef.current.startDist)));
+                        setLbZoom(newZoom);
+                        if (newZoom <= 1) setLbPan({ x: 0, y: 0 });
+                      } else if (e.touches.length === 1 && lbDragRef.current.active && lbZoom > 1) {
+                        const dx = e.touches[0].clientX - lbDragRef.current.startX;
+                        const dy = e.touches[0].clientY - lbDragRef.current.startY;
+                        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) lbDragRef.current.moved = true;
+                        setLbPan({ x: lbDragRef.current.panX + dx, y: lbDragRef.current.panY + dy });
+                      }
+                    }}
+                    onTouchEnd={(e) => {
+                      const moved = lbDragRef.current.moved;
+                      const wasPinch = lbPinchRef.current.active;
+                      lbDragRef.current.active = false;
+                      lbPinchRef.current.active = false;
+                      if (!moved && !wasPinch && e.changedTouches.length === 1) {
+                        if (lbZoom > 1) { setLbZoom(1); setLbPan({ x: 0, y: 0 }); }
+                        else setLbZoom(2.5);
+                      }
+                    }}
+                    style={{
+                      maxWidth: '90vw',
+                      maxHeight: '90vh',
+                      objectFit: 'contain',
+                      borderRadius: '4px',
+                      userSelect: 'none',
+                      touchAction: 'none',
+                      cursor: lbZoom > 1 ? (lbDragging ? 'grabbing' : 'grab') : 'zoom-in',
+                      transform: `scale(${lbZoom}) translate(${lbPan.x / lbZoom}px, ${lbPan.y / lbZoom}px)`,
+                      transformOrigin: 'center',
+                      transition: lbDragging ? 'none' : 'transform 0.2s ease',
+                    }}
+                  />
+
+                  {/* Reset zoom pill */}
+                  {lbZoom > 1 && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setLbZoom(1); setLbPan({ x: 0, y: 0 }); }}
+                      style={{ position: 'absolute', bottom: '64px', left: '50%', transform: 'translateX(-50%)', background: 'rgba(0,0,0,0.75)', border: '1px solid rgba(255,255,255,0.25)', color: '#fff', fontSize: '11px', padding: '5px 14px', borderRadius: '20px', cursor: 'pointer', zIndex: 4, whiteSpace: 'nowrap', fontFamily: FONT }}
+                    >
+                      Reset zoom
+                    </button>
+                  )}
+
+                  {/* Prev arrow */}
+                  {images.length > 1 && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setLbZoom(1); setLbPan({ x: 0, y: 0 }); setActiveImg((i) => (i - 1 + images.length) % images.length); }}
+                      style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff', width: '44px', height: '44px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3 }}
+                      aria-label="Previous image"
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+                    </button>
+                  )}
+
+                  {/* Next arrow */}
+                  {images.length > 1 && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setLbZoom(1); setLbPan({ x: 0, y: 0 }); setActiveImg((i) => (i + 1) % images.length); }}
+                      style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff', width: '44px', height: '44px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3 }}
+                      aria-label="Next image"
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+                    </button>
+                  )}
+
+                  {/* Dot counter */}
+                  {images.length > 1 && (
+                    <div style={{ position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '6px' }}>
+                      {images.map((_, i) => (
+                        <button
+                          key={i}
+                          onClick={(e) => { e.stopPropagation(); setLbZoom(1); setLbPan({ x: 0, y: 0 }); setActiveImg(i); }}
+                          style={{ width: i === activeImg ? '20px' : '8px', height: '8px', borderRadius: '4px', background: i === activeImg ? '#fff' : 'rgba(255,255,255,0.4)', border: 'none', padding: 0, cursor: 'pointer', transition: 'width 0.2s, background 0.2s' }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* ── Right: product info ── */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '10px' : '12px' }}>

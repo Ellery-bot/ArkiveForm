@@ -18,6 +18,7 @@ export async function GET(req: NextRequest) {
     let query = supabase
       .from('products')
       .select('*')
+      .order('sort_order', { ascending: true, nullsFirst: false })
       .order('created_at', { ascending: false });
 
     if (category) {

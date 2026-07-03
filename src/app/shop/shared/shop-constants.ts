@@ -30,11 +30,20 @@ export const CATEGORY_LABEL_OVERRIDES: Record<string, string> = {
 };
 
 /**
- * Sort order: preorder → onhand → lightstick(s) → album(s) → custom (a–z) → photocards
+ * Custom sort priority for artist/group categories.
+ * Categories listed here appear in this order before any remaining artist cats (a–z).
+ */
+const ARTIST_ORDER = ['bts', 'blackpink'];
+
+/**
+ * Sort order: preorder → onhand → lightstick(s) → album(s) → artist priority → rest (a–z) → photocards
  */
 export function sortCategories(categories: string[]): string[] {
   const pinned  = PINNED_ORDER.filter((c) => categories.includes(c));
   const tail    = PINNED_TAIL.filter((c) => categories.includes(c));
-  const custom  = categories.filter((c) => !BASE_CATEGORIES.includes(c)).sort();
-  return [...pinned, ...custom, ...tail];
+  const artistPriority = ARTIST_ORDER.filter((c) => categories.includes(c));
+  const rest    = categories
+    .filter((c) => !BASE_CATEGORIES.includes(c) && !ARTIST_ORDER.includes(c))
+    .sort();
+  return [...pinned, ...artistPriority, ...rest, ...tail];
 }

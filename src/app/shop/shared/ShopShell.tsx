@@ -2,7 +2,6 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useCart } from '@/lib/cart-context';
 import { PINK, FONT, BG_COLORS, sortCategories } from './shop-constants';
 import type { Product } from './shop-types';
@@ -158,7 +157,7 @@ export default function ShopShell({ category, loading = false, initialCategories
     <div className="cursor-reset-zone" style={{ background: '#fff', color: '#121212', minHeight: '100vh', fontFamily: FONT, overflowX: 'hidden', display: 'flex', flexDirection: 'column' }}>
       {/* Announcement banner */}
       <div style={{ background: PINK, color: '#fff', padding: '10px 0', fontSize: '14px', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-        <span style={{ display: 'inline-block', animation: 'marquee 18s linear infinite' }}>
+        <span style={{ display: 'inline-block', animation: 'marquee 30s linear infinite' }}>
           Looking for a specific K-pop item or ordering 2 or more items? Send us a DM for assistance and possible discounts.
         </span>
       </div>
@@ -182,14 +181,9 @@ export default function ShopShell({ category, loading = false, initialCategories
             className="shop-logo-link"
             style={{ textDecoration: 'none', flexShrink: 0 }}
           >
-            <Image
-              src="/logo.png"
-              alt="Arkive Market"
-              width={120}
-              height={48}
-              style={{ objectFit: 'contain', borderRadius: '8px', display: 'block' }}
-              priority
-            />
+            <span style={{ fontSize: '13px', color: '#121212', fontWeight: 700, letterSpacing: '1px', lineHeight: 1.2, display: 'block', whiteSpace: 'nowrap' }}>
+              ARKIVE MARKET
+            </span>
           </Link>
 
           <nav
@@ -358,13 +352,9 @@ export default function ShopShell({ category, loading = false, initialCategories
           {/* Brand */}
           <div style={{ minWidth: 0, overflowWrap: 'break-word' }}>
             <div style={{ marginBottom: '16px' }}>
-              <Image
-                src="/logo.png"
-                alt="Arkive Market"
-                width={140}
-                height={56}
-                style={{ objectFit: 'contain', borderRadius: '8px', display: 'block' }}
-              />
+              <span style={{ fontSize: '14px', fontWeight: 700, letterSpacing: '1px', lineHeight: 1.3, display: 'block' }}>
+                ARKIVE MARKET
+              </span>
             </div>
             <p style={{ fontSize: '13px', color: '#555', margin: '0 0 8px' }}>
               <span style={{ fontWeight: 700, color: '#121212' }}>Email: </span>
