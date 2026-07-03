@@ -26,6 +26,13 @@ const dmSans = DM_Sans({
 export const metadata: Metadata = {
   title: "Arkive Market",
   description: "Looking for a specific K-pop item or ordering 2 or more items? Send us a DM for assistance and possible discounts.",
+  openGraph: {
+    title: "Arkive Market",
+    description: "Looking for a specific K-pop item or ordering 2 or more items? Send us a DM for assistance and possible discounts.",
+    url: "https://arkivemarket.vercel.app",
+    siteName: "Arkive Market",
+    type: "website",
+  },
 };
 
 export const viewport: Viewport = {
