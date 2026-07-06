@@ -47,40 +47,55 @@ export async function POST(req: NextRequest) {
   try {
     const body: CheckoutBody = await req.json();
 
-    if (!body.items || body.items.length === 0) {
+    if (!body.items || !Array.isArray(body.items) || body.items.length === 0) {
       return NextResponse.json({ error: 'No items in cart' }, { status: 400 });
     }
 
-    let totalAmount = 0;
+    if (body.items.length > 50) {
+      return NextResponse.json({ error: 'Too many items in cart' }, { status: 400 });
+    }
+
+    // Validate structure only — prices are NEVER trusted from the client
     for (const item of body.items) {
-      if (!item.title || typeof item.price !== 'number' || typeof item.quantity !== 'number') {
+      if (!item.productId || typeof item.quantity !== 'number' || item.quantity < 1 || !Number.isInteger(item.quantity)) {
         return NextResponse.json({ error: 'Invalid item data' }, { status: 400 });
       }
-      totalAmount += item.price * item.quantity;
     }
+
+    // Sanitize optional text fields
+    const customerName = body.customerName ? String(body.customerName).trim().slice(0, 100) : null;
+    const customerEmail = body.customerEmail ? String(body.customerEmail).trim().slice(0, 200) : null;
 
     const supabase = createServerSupabase();
 
-    // Validate stock for each item
+    // Fetch authoritative prices and stock from the database
     const productIds = body.items.map((i) => i.productId);
     const { data: products } = await supabase
       .from('products')
-      .select('id, title, quantity')
+      .select('id, title, price, quantity')
       .in('id', productIds);
 
-    if (products) {
-      for (const item of body.items) {
-        const product = products.find((p) => p.id === item.productId);
-        if (!product) {
-          return NextResponse.json({ error: `Product "${item.title}" is no longer available.` }, { status: 400 });
-        }
-        if (item.quantity > product.quantity) {
-          return NextResponse.json(
-            { error: `"${product.title}" only has ${product.quantity} left in stock. Please adjust your cart.` },
-            { status: 400 }
-          );
-        }
+    let totalAmount = 0;
+    const validatedItems: CheckoutItem[] = [];
+
+    for (const item of body.items) {
+      const product = products?.find((p) => p.id === item.productId);
+      if (!product) {
+        return NextResponse.json({ error: `A product in your cart is no longer available.` }, { status: 400 });
       }
+      if (item.quantity > product.quantity) {
+        return NextResponse.json(
+          { error: `"${product.title}" only has ${product.quantity} left in stock. Please adjust your cart.` },
+          { status: 400 }
+        );
+      }
+      totalAmount += product.price * item.quantity;
+      validatedItems.push({
+        productId: item.productId,
+        title: product.title,
+        price: product.price, // store authoritative DB price in order snapshot
+        quantity: item.quantity,
+      });
     }
 
     const { data: orderData, error: orderError } = await supabase
@@ -89,9 +104,9 @@ export async function POST(req: NextRequest) {
         {
           status: 'pending',
           total_amount: totalAmount,
-          customer_email: body.customerEmail ?? null,
-          customer_name: body.customerName ?? null,
-          items: body.items,
+          customer_email: customerEmail,
+          customer_name: customerName,
+          items: validatedItems,
         },
       ])
       .select()
